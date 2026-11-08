@@ -267,24 +267,24 @@
       <div class="calc-row">
         <div>
           <label>重量</label>
-          <input type="number" id="barWeight" value="1" step="0.1" min="0.1" />
+          <input type="number" id="barWeight" value="5" step="0.1" min="0.1" />
         </div>
         <div>
           <label>單位</label>
           <select id="barUnit">
+            <option value="g" selected>公克 (g)</option>
             <option value="oz">盎司 (oz)</option>
-            <option value="g">公克 (g)</option>
           </select>
         </div>
         <div>
           <label>好市多售價 (USD 或 TWD)</label>
-          <input type="number" id="barPrice" value="4150" step="1" />
+          <input type="number" id="barPrice" value="24000" step="1" />
         </div>
         <div>
           <label>幣別</label>
           <select id="barCurrency">
+            <option value="TWD" selected>TWD</option>
             <option value="USD">USD</option>
-            <option value="TWD">TWD</option>
           </select>
         </div>
         <button onclick="calcPremium()">計算溢價</button>
@@ -384,7 +384,7 @@
           <li><strong>溢價 ≤ 2%</strong>：相對划算，可考慮入手（尤其長期持有）。</li>
           <li><strong>溢價 2%–4%</strong>：尚可，比較其他通路或等補貨。</li>
           <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望或比較銀行/金商條塊。</li>
-          <li>小規格（&lt;10g）溢價通常較高，適合送禮或小額配置。</li>
+          <li>小規格（<10g）溢價通常較高，適合送禮或小額配置。</li>
           <li>好市多限購、常秒殺，需會員；金條轉手便利性高於飾金。</li>
         </ul>
       </div>
@@ -420,7 +420,6 @@
         document.getElementById('priceGramTwd').textContent = 'NT$' + Math.round(gramTwd).toLocaleString();
         document.getElementById('priceQian').textContent = 'NT$' + Math.round(qian).toLocaleString();
 
-        // 簡單漲跌（若有前一日可更準，這裡用佔位）
         document.getElementById('changeUsd').textContent = '即時現貨';
         document.getElementById('changeUsd').className = 'sub';
         document.getElementById('updatedAt').textContent = '更新時間：' + new Date().toLocaleString('zh-TW') + ' · 資料來源 xaus.com';
@@ -483,7 +482,6 @@
           }
         });
 
-        // 統計
         if (closes.length > 1) {
           const first = closes[0];
           const last = closes[closes.length - 1];
@@ -555,7 +553,6 @@
       `;
     }
 
-    // 事件
     document.querySelectorAll('.period-btns button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.period-btns button').forEach(b => b.classList.remove('active'));
@@ -564,7 +561,6 @@
       });
     });
 
-    // 初始化
     loadSpot();
     loadHistory(7);
   </script>
