@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>金價查詢 & 好市多黃金建議</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2d3a4f;
+      --gold: #f5c518;
+      --gold-dim: #c9a227;
+      --text: #e8eef7;
+      --muted: #8b9bb4;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    header {
+      text-align: center;
+      padding: 24px 0 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      background: linear-gradient(135deg, var(--gold), #fff3b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .icon { font-size: 1.3rem; }
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .price-box {
+      background: rgba(245, 197, 24, 0.08);
+      border: 1px solid rgba(245, 197, 24, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .price-box .label { font-size: 0.75rem; color: var(--muted); }
+    .price-box .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin: 4px 0;
+    }
+    .price-box .sub { font-size: 0.8rem; color: var(--muted); }
+    .change-up { color: var(--green); }
+    .change-down { color: var(--red); }
+    .period-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .period-btns button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .period-btns button.active,
+    .period-btns button:hover {
+      background: var(--gold);
+      color: #0f1419;
+      border-color: var(--gold);
+      font-weight: 600;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 280px;
+      margin-top: 8px;
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+      font-size: 0.85rem;
+    }
+    .stat { text-align: center; }
+    .stat .v { font-weight: 600; color: var(--gold); }
+    .stat .l { color: var(--muted); font-size: 0.75rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
+    .premium-good { color: var(--green); font-weight: 600; }
+    .premium-ok { color: var(--gold); font-weight: 600; }
+    .premium-high { color: var(--red); font-weight: 600; }
+    .advice-box {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .advice-box.strong-buy { border-color: var(--green); background: rgba(34, 197, 94, 0.1); }
+    .advice-box.caution { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
+    .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
+    .calc-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 12px;
+    }
+    .calc-row label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    .calc-row input, .calc-row select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 140px;
+    }
+    .calc-row button {
+      background: var(--gold);
+      color: #0f1419;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .links a {
+      color: var(--gold);
+      text-decoration: none;
+      margin-right: 16px;
+      font-size: 0.9rem;
+    }
+    .links a:hover { text-decoration: underline; }
+    .disclaimer {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .loading { color: var(--muted); text-align: center; padding: 20px; }
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      float: right;
+    }
+    .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+    @media (max-width: 600px) {
+      .price-box .value { font-size: 1.2rem; }
+      .chart-wrap { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🪙 金價查詢 & 好市多黃金建議</h1>
+      <p>即時國際金價 · 走勢圖 · 好市多溢價分析（僅供參考）</p>
+    </header>
+
+    <!-- 即時金價 -->
+    <div class="card">
+      <h2><span class="icon">📈</span> 即時國際金價
+        <button class="refresh-btn" onclick="loadSpot()">重新整理</button>
+      </h2>
+      <div id="spotLoading" class="loading">載入中...</div>
+      <div id="spotContent" style="display:none">
+        <div class="price-grid">
+          <div class="price-box">
+            <div class="label">USD / 盎司</div>
+            <div class="value" id="priceUsd">—</div>
+            <div class="sub" id="changeUsd">—</div>
+          </div>
+          <div class="price-box">
+            <div class="label">USD / 公克</div>
+            <div class="value" id="priceGramUsd">—</div>
+            <div class="sub">純金 999.9</div>
+          </div>
+          <div class="price-box">
+            <div class="label">約 TWD / 公克</div>
+            <div class="value" id="priceGramTwd">—</div>
+            <div class="sub">匯率估算</div>
+          </div>
+          <div class="price-box">
+            <div class="label">約 TWD / 台錢</div>
+            <div class="value" id="priceQian">—</div>
+            <div class="sub">1 台錢 = 3.75g</div>
+          </div>
+        </div>
+        <p style="font-size:0.8rem;color:var(--muted)" id="updatedAt">—</p>
+      </div>
+    </div>
+
+    <!-- 走勢圖 -->
+    <div class="card">
+      <h2><span class="icon">📉</span> 金價走勢</h2>
+      <div class="period-btns">
+        <button class="active" data-days="7">7 天</button>
+        <button data-days="30">30 天</button>
+        <button data-days="90">90 天</button>
+        <button data-days="180">半年</button>
+        <button data-days="365">1 年</button>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="goldChart"></canvas>
+      </div>
+      <div class="stats-row" id="chartStats"></div>
+    </div>
+
+    <!-- 好市多溢價計算機 -->
+    <div class="card">
+      <h2><span class="icon">🛒</span> 好市多黃金溢價分析</h2>
+      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px">
+        輸入好市多售價與重量，計算相對於國際現貨的溢價，並給出簡易建議。
+      </p>
+      <div class="calc-row">
+        <div>
+          <label>重量</label>
+          <input type="number" id="barWeight" value="1" step="0.1" min="0.1" />
+        </div>
+        <div>
+          <label>單位</label>
+          <select id="barUnit">
+            <option value="oz">盎司 (oz)</option>
+            <option value="g">公克 (g)</option>
+          </select>
+        </div>
+        <div>
+          <label>好市多售價 (USD 或 TWD)</label>
+          <input type="number" id="barPrice" value="4150" step="1" />
+        </div>
+        <div>
+          <label>幣別</label>
+          <select id="barCurrency">
+            <option value="USD">USD</option>
+            <option value="TWD">TWD</option>
+          </select>
+        </div>
+        <button onclick="calcPremium()">計算溢價</button>
+      </div>
+      <div id="premiumResult"></div>
+    </div>
+
+    <!-- 美國 Costco 參考 -->
+    <div class="card">
+      <h2><span class="icon">🇺🇸</span> 美國 Costco 金條參考（約 2026/11）</h2>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
+        常見 1 oz PAMP / Rand 等，線上常秒殺，店內較穩定。溢價通常約 1.5%–3%。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>商品</th>
+            <th>重量</th>
+            <th>最近售價</th>
+            <th>溢價</th>
+            <th>建議</th>
+          </tr>
+        </thead>
+        <tbody id="usCostcoTable">
+          <tr>
+            <td>PAMP Lady Fortuna 1 oz</td>
+            <td>1 oz</td>
+            <td>≈ $4,150–4,160</td>
+            <td class="premium-ok">約 +2%</td>
+            <td>可考慮</td>
+          </tr>
+          <tr>
+            <td>Rand Refinery 1 oz</td>
+            <td>1 oz</td>
+            <td>≈ $4,150–4,160</td>
+            <td class="premium-ok">約 +2%</td>
+            <td>可考慮</td>
+          </tr>
+          <tr>
+            <td>20g / 50g / 100g 系列</td>
+            <td>多種</td>
+            <td>依現貨浮動</td>
+            <td class="premium-ok">約 +1.5–3%</td>
+            <td>視溢價</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="links" style="margin-top:14px">
+        <a href="https://www.costco.com" target="_blank" rel="noopener">Costco.com</a>
+        <a href="https://costcogoldinventory.com" target="_blank" rel="noopener">庫存追蹤網站</a>
+      </div>
+    </div>
+
+    <!-- 台灣好市多參考 -->
+    <div class="card">
+      <h2><span class="icon">🇹🇼</span> 台灣好市多 (Costco.com.tw) 參考</h2>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
+        台灣多為小規格（2.5g、5g、10g、50g 等）PAMP 或紀念款，常缺貨。溢價通常比美國略高。請以官網即時價格為準。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>商品範例</th>
+            <th>重量</th>
+            <th>參考售價 (TWD)</th>
+            <th>說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PAMP 財富女神 / 白鷹等</td>
+            <td>2.5g – 5g</td>
+            <td>約 1.2萬 – 2.5萬</td>
+            <td>常缺貨，溢價較高</td>
+          </tr>
+          <tr>
+            <td>紀念款 / 龍年等</td>
+            <td>1 oz 或 5g</td>
+            <td>約 7–14 萬</td>
+            <td>收藏溢價可能更高</td>
+          </tr>
+          <tr>
+            <td>50g 浮雕龍等</td>
+            <td>50g</td>
+            <td>約 29 萬</td>
+            <td>大規格較接近現貨</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="links" style="margin-top:14px">
+        <a href="https://www.costco.com.tw" target="_blank" rel="noopener">好市多台灣官網</a>
+        <a href="https://www.costco.com.tw/Jewelry-Gold" target="_blank" rel="noopener">貴金屬分類</a>
+      </div>
+      <div class="advice-box" style="margin-top:16px">
+        <h3>簡易購買建議原則</h3>
+        <ul style="padding-left:18px;font-size:0.9rem">
+          <li><strong>溢價 ≤ 2%</strong>：相對划算，可考慮入手（尤其長期持有）。</li>
+          <li><strong>溢價 2%–4%</strong>：尚可，比較其他通路或等補貨。</li>
+          <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望或比較銀行/金商條塊。</li>
+          <li>小規格（&lt;10g）溢價通常較高，適合送禮或小額配置。</li>
+          <li>好市多限購、常秒殺，需會員；金條轉手便利性高於飾金。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      本工具僅供資訊參考，金價來自公開 API（約 1 分鐘延遲），好市多價格為估算/歷史參考，實際以現場或官網為準。<br>
+      非投資建議。購買黃金有市場風險，請自行評估並諮詢專業人士。資料更新時間以頁面顯示為準。
+    </div>
+  </div>
+
+  <script>
+    const USD_TWD = 32.85; // 近似匯率，可手動調整
+    let chart = null;
+    let currentSpot = null;
+
+    async function loadSpot() {
+      const loading = document.getElementById('spotLoading');
+      const content = document.getElementById('spotContent');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+      try {
+        const res = await fetch('https://xaus.com/api/v1/spot?compact=1');
+        const data = await res.json();
+        currentSpot = data;
+        const usdOz = data.spot_usd_oz || data.xau?.price || 4070;
+        const gramUsd = data.per_gram_usd || (usdOz / 31.1035);
+        const gramTwd = gramUsd * USD_TWD;
+        const qian = gramTwd * 3.75;
+
+        document.getElementById('priceUsd').textContent = '$' + usdOz.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('priceGramUsd').textContent = '$' + gramUsd.toFixed(2);
+        document.getElementById('priceGramTwd').textContent = 'NT$' + Math.round(gramTwd).toLocaleString();
+        document.getElementById('priceQian').textContent = 'NT$' + Math.round(qian).toLocaleString();
+
+        // 簡單漲跌（若有前一日可更準，這裡用佔位）
+        document.getElementById('changeUsd').textContent = '即時現貨';
+        document.getElementById('changeUsd').className = 'sub';
+        document.getElementById('updatedAt').textContent = '更新時間：' + new Date().toLocaleString('zh-TW') + ' · 資料來源 xaus.com';
+
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      } catch (e) {
+        loading.textContent = '載入失敗，請稍後再試或檢查網路';
+        console.error(e);
+      }
+    }
+
+    async function loadHistory(days) {
+      try {
+        const res = await fetch(`https://xaus.com/api/v1/history?days=${days}`);
+        const data = await res.json();
+        const points = data.points || [];
+        const labels = points.map(p => p.d);
+        const closes = points.map(p => p.c);
+
+        const ctx = document.getElementById('goldChart').getContext('2d');
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: '金價 (USD/oz)',
+              data: closes,
+              borderColor: '#f5c518',
+              backgroundColor: 'rgba(245, 197, 24, 0.15)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: days > 90 ? 0 : 2,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => '$' + ctx.parsed.y.toFixed(2)
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#8b9bb4', maxTicksLimit: 8 },
+                grid: { color: 'rgba(45,58,79,0.5)' }
+              },
+              y: {
+                ticks: { color: '#8b9bb4', callback: v => '$' + v },
+                grid: { color: 'rgba(45,58,79,0.5)' }
+              }
+            }
+          }
+        });
+
+        // 統計
+        if (closes.length > 1) {
+          const first = closes[0];
+          const last = closes[closes.length - 1];
+          const change = last - first;
+          const pct = (change / first * 100).toFixed(2);
+          const high = Math.max(...closes);
+          const low = Math.min(...closes);
+          document.getElementById('chartStats').innerHTML = `
+            <div class="stat"><div class="v">$${last.toFixed(1)}</div><div class="l">最新收盤</div></div>
+            <div class="stat"><div class="v ${change >= 0 ? 'change-up' : 'change-down'}">${change >= 0 ? '+' : ''}${pct}%</div><div class="l">期間漲跌</div></div>
+            <div class="stat"><div class="v">$${high.toFixed(1)}</div><div class="l">期間最高</div></div>
+            <div class="stat"><div class="v">$${low.toFixed(1)}</div><div class="l">期間最低</div></div>
+          `;
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('chartStats').innerHTML = '<p class="loading">走勢圖載入失敗</p>';
+      }
+    }
+
+    function calcPremium() {
+      if (!currentSpot) {
+        alert('請先等待金價載入完成');
+        return;
+      }
+      const weight = parseFloat(document.getElementById('barWeight').value) || 0;
+      const unit = document.getElementById('barUnit').value;
+      const price = parseFloat(document.getElementById('barPrice').value) || 0;
+      const currency = document.getElementById('barCurrency').value;
+
+      const usdOz = currentSpot.spot_usd_oz || 4070;
+      const grams = unit === 'oz' ? weight * 31.1035 : weight;
+      const meltUsd = (grams / 31.1035) * usdOz;
+      let sellUsd = price;
+      if (currency === 'TWD') sellUsd = price / USD_TWD;
+
+      const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
+      const premiumAbs = sellUsd - meltUsd;
+
+      let adviceClass = 'advice-box';
+      let adviceTitle = '建議';
+      let adviceText = '';
+
+      if (premium <= 2) {
+        adviceClass += ' strong-buy';
+        adviceTitle = '✅ 相對划算';
+        adviceText = '溢價約 ' + premium.toFixed(2) + '%，在好市多金條中屬於較低水準。若為長期持有或分散配置，可考慮購買。注意庫存與限購。';
+      } else if (premium <= 4) {
+        adviceClass += '';
+        adviceTitle = '⚖️ 尚可接受';
+        adviceText = '溢價約 ' + premium.toFixed(2) + '%，在合理範圍。可比較其他通路或等補貨再決定。小規格溢價通常較高。';
+      } else {
+        adviceClass += ' caution';
+        adviceTitle = '⚠️ 溢價偏高';
+        adviceText = '溢價約 ' + premium.toFixed(2) + '%，相對國際現貨偏貴。建議觀望、比較銀行/金商條塊，或等待好市多降價/補貨。';
+      }
+
+      document.getElementById('premiumResult').innerHTML = `
+        <div class="${adviceClass}">
+          <h3>${adviceTitle}</h3>
+          <p style="font-size:0.95rem">
+            現貨熔值約 <strong>$${meltUsd.toFixed(2)}</strong> USD<br>
+            你的買價約 <strong>$${sellUsd.toFixed(2)}</strong> USD<br>
+            溢價金額 <strong>$${premiumAbs.toFixed(2)}</strong> · 溢價率 <strong>${premium.toFixed(2)}%</strong>
+          </p>
+          <p style="margin-top:8px;font-size:0.9rem">${adviceText}</p>
+          <p style="margin-top:8px;font-size:0.8rem;color:var(--muted)">注意：未含稅、運費、會員費；實際轉售會有折價。非投資建議。</p>
+        </div>
+      `;
+    }
+
+    // 事件
+    document.querySelectorAll('.period-btns button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btns button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadHistory(parseInt(btn.dataset.days));
+      });
+    });
+
+    // 初始化
+    loadSpot();
+    loadHistory(7);
+  </script>
+</body>
+</html>
