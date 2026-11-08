@@ -169,6 +169,11 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .auto-hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
     .links a {
       color: var(--gold);
       text-decoration: none;
@@ -209,7 +214,6 @@
       <p>即時國際金價 · 走勢圖 · 好市多溢價分析（僅供參考）</p>
     </header>
 
-    <!-- 即時金價 -->
     <div class="card">
       <h2><span class="icon">📈</span> 即時國際金價
         <button class="refresh-btn" onclick="loadSpot()">重新整理</button>
@@ -242,7 +246,6 @@
       </div>
     </div>
 
-    <!-- 走勢圖 -->
     <div class="card">
       <h2><span class="icon">📉</span> 金價走勢</h2>
       <div class="period-btns">
@@ -258,7 +261,6 @@
       <div class="stats-row" id="chartStats"></div>
     </div>
 
-    <!-- 好市多溢價計算機 -->
     <div class="card">
       <h2><span class="icon">🛒</span> 好市多黃金溢價分析</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px">
@@ -289,10 +291,10 @@
         </div>
         <button onclick="calcPremium()">計算溢價</button>
       </div>
+      <p class="auto-hint">✨ 輸入變更或金價載入後會自動計算</p>
       <div id="premiumResult"></div>
     </div>
 
-    <!-- 美國 Costco 參考 -->
     <div class="card">
       <h2><span class="icon">🇺🇸</span> 美國 Costco 金條參考（約 2026/11）</h2>
       <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
@@ -308,7 +310,7 @@
             <th>建議</th>
           </tr>
         </thead>
-        <tbody id="usCostcoTable">
+        <tbody>
           <tr>
             <td>PAMP Lady Fortuna 1 oz</td>
             <td>1 oz</td>
@@ -338,7 +340,6 @@
       </div>
     </div>
 
-    <!-- 台灣好市多參考 -->
     <div class="card">
       <h2><span class="icon">🇹🇼</span> 台灣好市多 (Costco.com.tw) 參考</h2>
       <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
@@ -397,9 +398,10 @@
   </div>
 
   <script>
-    const USD_TWD = 32.85; // 近似匯率，可手動調整
+    const USD_TWD = 32.85;
     let chart = null;
     let currentSpot = null;
+    let calcTimer = null;
 
     async function loadSpot() {
       const loading = document.getElementById('spotLoading');
@@ -426,6 +428,9 @@
 
         loading.style.display = 'none';
         content.style.display = 'block';
+
+        // 金價載入後自動計算
+        calcPremium(true);
       } catch (e) {
         loading.textContent = '載入失敗，請稍後再試或檢查網路';
         console.error(e);
@@ -502,15 +507,20 @@
       }
     }
 
-    function calcPremium() {
+    function calcPremium(silent) {
       if (!currentSpot) {
-        alert('請先等待金價載入完成');
+        if (!silent) alert('請先等待金價載入完成');
         return;
       }
       const weight = parseFloat(document.getElementById('barWeight').value) || 0;
       const unit = document.getElementById('barUnit').value;
       const price = parseFloat(document.getElementById('barPrice').value) || 0;
       const currency = document.getElementById('barCurrency').value;
+
+      if (weight <= 0 || price <= 0) {
+        document.getElementById('premiumResult').innerHTML = '';
+        return;
+      }
 
       const usdOz = currentSpot.spot_usd_oz || 4070;
       const grams = unit === 'oz' ? weight * 31.1035 : weight;
@@ -552,6 +562,19 @@
         </div>
       `;
     }
+
+    // 自動計算（防抖）
+    function scheduleAutoCalc() {
+      clearTimeout(calcTimer);
+      calcTimer = setTimeout(() => calcPremium(true), 300);
+    }
+
+    ['barWeight', 'barPrice'].forEach(id => {
+      document.getElementById(id).addEventListener('input', scheduleAutoCalc);
+    });
+    ['barUnit', 'barCurrency'].forEach(id => {
+      document.getElementById(id).addEventListener('change', scheduleAutoCalc);
+    });
 
     document.querySelectorAll('.period-btns button').forEach(btn => {
       btn.addEventListener('click', () => {
