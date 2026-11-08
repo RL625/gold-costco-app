@@ -7,67 +7,35 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0f1419;
-      --card: #1a2332;
-      --border: #2d3a4f;
-      --gold: #f5c518;
-      --text: #e8eef7;
-      --muted: #8b9bb4;
-      --green: #22c55e;
-      --red: #ef4444;
-      --blue: #3b82f6;
+      --bg: #0f1419; --card: #1a2332; --border: #2d3a4f; --gold: #f5c518;
+      --text: #e8eef7; --muted: #8b9bb4; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
-      padding: 16px;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; padding: 16px;
     }
     .container { max-width: 960px; margin: 0 auto; }
     header {
-      text-align: center;
-      padding: 24px 0 16px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      text-align: center; padding: 24px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
     }
     header h1 {
       font-size: 1.75rem;
       background: linear-gradient(135deg, var(--gold), #fff3b0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     header p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
-    .card h2 {
-      font-size: 1.15rem;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .card h2 { font-size: 1.15rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
     .price-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;
     }
     .price-box {
-      background: rgba(245, 197, 24, 0.08);
-      border: 1px solid rgba(245, 197, 24, 0.25);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
+      background: rgba(245, 197, 24, 0.08); border: 1px solid rgba(245, 197, 24, 0.25);
+      border-radius: 12px; padding: 14px; text-align: center;
     }
     .price-box .label { font-size: 0.75rem; color: var(--muted); }
     .price-box .value { font-size: 1.4rem; font-weight: 700; color: var(--gold); margin: 4px 0; }
@@ -90,12 +58,19 @@
     .stat { text-align: center; }
     .stat .v { font-weight: 600; color: var(--gold); }
     .stat .l { color: var(--muted); font-size: 0.75rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
     .premium-good { color: var(--green); font-weight: 600; }
     .premium-ok { color: var(--gold); font-weight: 600; }
     .premium-high { color: var(--red); font-weight: 600; }
+    .best-row { background: rgba(34, 197, 94, 0.12); }
+    .best-badge {
+      display: inline-block; background: var(--green); color: #0f1419;
+      font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 999px; margin-left: 4px;
+    }
+    .stock-ok { color: var(--green); font-weight: 600; }
+    .stock-out { color: var(--red); }
     .advice-box {
       background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);
       border-radius: 12px; padding: 16px; margin-top: 16px;
@@ -103,28 +78,14 @@
     .advice-box.strong-buy { border-color: var(--green); background: rgba(34, 197, 94, 0.1); }
     .advice-box.caution { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
     .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
-    .calc-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px; margin-bottom: 12px;
+    .calc-bar {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 14px;
     }
-    .calc-item label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-    .calc-item input, .calc-item select {
+    .calc-bar label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    .calc-bar select {
       background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      padding: 10px 12px; border-radius: 8px; font-size: 1rem; width: 100%;
+      padding: 10px 12px; border-radius: 8px; font-size: 0.95rem;
     }
-    .calc-item input:focus, .calc-item select:focus { outline: none; border-color: var(--gold); }
-    .auto-hint { font-size: 0.8rem; color: var(--muted); margin-top: 4px; margin-bottom: 12px; }
-    .compare-table { width: 100%; margin-top: 8px; font-size: 0.85rem; }
-    .compare-table th, .compare-table td { padding: 10px 6px; text-align: center; }
-    .best-row { background: rgba(34, 197, 94, 0.12); }
-    .best-badge {
-      display: inline-block; background: var(--green); color: #0f1419;
-      font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 4px;
-    }
-    .buy-link { display: inline-block; margin-top: 4px; font-size: 0.75rem; color: var(--blue); text-decoration: none; }
-    .buy-link:hover { text-decoration: underline; color: var(--gold); }
-    .stock-ok { color: var(--green); font-weight: 600; }
-    .stock-out { color: var(--red); }
     .links a { color: var(--gold); text-decoration: none; margin-right: 16px; font-size: 0.9rem; }
     .links a:hover { text-decoration: underline; }
     .disclaimer {
@@ -137,21 +98,13 @@
       padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; float: right;
     }
     .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .fill-btn {
-      background: rgba(245,197,24,0.15); border: 1px solid var(--gold); color: var(--gold);
-      padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;
-    }
-    .fill-btn:hover { background: var(--gold); color: #0f1419; }
-    .use-btn {
-      background: transparent; border: 1px solid var(--border); color: var(--muted);
-      padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;
-    }
-    .use-btn:hover { border-color: var(--gold); color: var(--gold); }
+    a.buy { color: var(--gold); text-decoration: none; }
+    a.buy:hover { text-decoration: underline; }
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
-      .compare-table { font-size: 0.75rem; }
-      table { font-size: 0.75rem; }
+      table { font-size: 0.72rem; }
+      th, td { padding: 8px 4px; }
     }
   </style>
 </head>
@@ -163,7 +116,7 @@
     </header>
 
     <div class="card">
-      <h2><span class="icon">📈</span> 即時國際金價
+      <h2>📈 即時國際金價
         <button class="refresh-btn" onclick="loadSpot()">重新整理</button>
       </h2>
       <div id="spotLoading" class="loading">載入中...</div>
@@ -195,7 +148,7 @@
     </div>
 
     <div class="card">
-      <h2><span class="icon">📉</span> 金價走勢</h2>
+      <h2>📉 金價走勢</h2>
       <div class="period-btns">
         <button class="active" data-days="7">7 天</button>
         <button data-days="30">30 天</button>
@@ -208,25 +161,13 @@
     </div>
 
     <div class="card">
-      <h2><span class="icon">🛒</span> 好市多黃金溢價比較</h2>
+      <h2>🛒 好市多黃金 · 溢價比較（全部商品）</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px">
-        已預填目前官網可見售價。可從下方完整清單「帶入計算」，或自行修改。
+        直接列出貴金屬分類全部商品，並依目前金價與回饋自動計算溢價。資料約 2026/11/08。
       </p>
-      <button class="fill-btn" onclick="fillCostcoPrices()">一鍵填入常用規格售價</button>
-      <div class="calc-grid">
-        <div class="calc-item">
-          <label>1g 售價 (TWD)</label>
-          <input type="number" id="price1g" value="5299" step="1" min="0" />
-        </div>
-        <div class="calc-item">
-          <label>2.5g 售價 (TWD)</label>
-          <input type="number" id="price25g" value="11889" step="1" min="0" />
-        </div>
-        <div class="calc-item">
-          <label>5g 售價 (TWD)</label>
-          <input type="number" id="price5g" value="23789" step="1" min="0" />
-        </div>
-        <div class="calc-item">
+
+      <div class="calc-bar">
+        <div>
           <label>聯名卡回饋</label>
           <select id="rewardRate">
             <option value="0">無回饋 (0%)</option>
@@ -235,47 +176,45 @@
           </select>
         </div>
       </div>
-      <p class="auto-hint">✨ 輸入售價或變更回饋後自動計算 · 黑鑽卡 2% 不適用於黃金條塊</p>
-      <div id="premiumResult"></div>
-    </div>
 
-    <div class="card">
-      <h2><span class="icon">🇹🇼</span> 好市多貴金屬分類全部商品（共 9 筆）</h2>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
-        資料來源：costco.com.tw 貴金屬、黃金條塊分類（未登入可見）。更新時間約 2026/11/08。
-      </p>
       <div style="overflow-x:auto">
         <table>
           <thead>
             <tr>
               <th>商品</th>
               <th>重量</th>
-              <th>售價</th>
+              <th>標價</th>
+              <th>扣回饋後</th>
+              <th>每公克</th>
+              <th>溢價</th>
               <th>庫存</th>
-              <th>操作</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="costcoTable"></tbody>
         </table>
       </div>
+
+      <div id="recommendBox"></div>
+
       <div class="links" style="margin-top:14px">
-        <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">開啟完整分類頁 →</a>
+        <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">開啟好市多分類頁 →</a>
       </div>
+
       <div class="advice-box" style="margin-top:16px">
-        <h3>簡易購買建議原則（扣除回饋後）</h3>
+        <h3>簡易判斷原則（扣除回饋後）</h3>
         <ul style="padding-left:18px;font-size:0.9rem">
-          <li><strong>溢價 ≤ 2%</strong>：相對划算，可考慮入手。</li>
-          <li><strong>溢價 2%–4%</strong>：尚可，比較其他通路。</li>
-          <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望。</li>
-          <li>小規格（<10g）溢價通常較高，適合送禮或小額配置。</li>
-          <li>黑鑽卡 2% 回饋金不適用於黃金條塊；主要靠富邦聯名卡好多金。</li>
+          <li><strong>溢價 ≤ 2%</strong>：相對划算</li>
+          <li><strong>溢價 2%–4%</strong>：尚可</li>
+          <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望</li>
+          <li>小規格溢價通常較高；黑鑽卡 2% 不適用於黃金條塊</li>
         </ul>
       </div>
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考，金價來自公開 API，好市多價格為手動擷取參考，實際以現場或官網為準。<br>
-      非投資建議。購買黃金有市場風險，請自行評估並諮詢專業人士。
+      本工具僅供資訊參考，金價來自公開 API，好市多價格為手動擷取，實際以官網為準。<br>
+      非投資建議。購買黃金有市場風險，請自行評估。
     </div>
   </div>
 
@@ -283,116 +222,98 @@
     const USD_TWD = 32.85;
     let chart = null;
     let currentSpot = null;
-    let calcTimer = null;
 
-    // 好市多貴金屬分類完整清單（2026/11/08 擷取）
     const COSTCO_PRODUCTS = [
-      {
-        name: 'APMEX 羊年黃金條塊',
-        grams: 1,
-        price: 5299,
-        stock: true,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110'
-      },
-      {
-        name: 'PAMP 財富女神',
-        grams: 2.5,
-        price: 11889,
-        stock: true,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600'
-      },
-      {
-        name: 'PAMP 美國白鷹',
-        grams: 5,
-        price: 23789,
-        stock: true,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877'
-      },
-      {
-        name: 'PAMP 財富女神',
-        grams: 5,
-        price: 23649,
-        stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-5-g/p/155641'
-      },
-      {
-        name: 'PAMP 幸運草',
-        grams: 5,
-        price: 24269,
-        stock: true,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Lucky-Clover-Gold-Ingot-5-g/p/159852'
-      },
-      {
-        name: 'PAMP Fender 吉他撥片幣',
-        grams: 5,
-        price: 27069,
-        stock: true,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fender-75th-Anniversary-Gold-Guitar-Pick-Coin-9999-Fine-Gold-5g/p/163768'
-      },
-      {
-        name: 'PAMP 財富女神',
-        grams: 10,
-        price: null,
-        stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-10-g/p/146044'
-      },
-      {
-        name: 'PAMP 財富女神',
-        grams: 20,
-        price: null,
-        stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-20-g/p/146047'
-      },
-      {
-        name: '伯斯鑄幣廠 黑天鵝',
-        grams: 31.1035,
-        price: 141499,
-        stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793'
-      }
+      { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
+      { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600' },
+      { name: 'PAMP 美國白鷹', grams: 5, price: 23789, stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877' },
+      { name: 'PAMP 財富女神', grams: 5, price: 23649, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-5-g/p/155641' },
+      { name: 'PAMP 幸運草', grams: 5, price: 24269, stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Lucky-Clover-Gold-Ingot-5-g/p/159852' },
+      { name: 'PAMP Fender 吉他撥片幣', grams: 5, price: 27069, stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fender-75th-Anniversary-Gold-Guitar-Pick-Coin-9999-Fine-Gold-5g/p/163768' },
+      { name: 'PAMP 財富女神', grams: 10, price: null, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-10-g/p/146044' },
+      { name: 'PAMP 財富女神', grams: 20, price: null, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-20-g/p/146047' },
+      { name: '伯斯鑄幣廠 黑天鵝', grams: 31.1035, price: 141499, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793' }
     ];
 
-    const COSTCO_PRICES = { g1: 5299, g25: 11889, g5: 23789 };
+    function calcItem(p, usdOz, rewardPct) {
+      if (p.price == null || p.price <= 0) return null;
+      const meltUsd = (p.grams / 31.1035) * usdOz;
+      const netPrice = p.price * (1 - rewardPct / 100);
+      const sellUsd = netPrice / USD_TWD;
+      const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
+      const perGram = netPrice / p.grams;
+      return { ...p, netPrice, premium, perGram };
+    }
 
-    function renderCostcoTable() {
+    function renderTable() {
+      const usdOz = currentSpot ? (currentSpot.spot_usd_oz || 4070) : 4070;
+      const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
+
+      const computed = COSTCO_PRODUCTS.map(p => calcItem(p, usdOz, rewardPct));
+      const withPremium = computed.filter(Boolean);
+      let bestIdx = -1;
+      if (withPremium.length) {
+        let best = withPremium[0];
+        withPremium.forEach((it, i) => { if (it.premium < best.premium) { best = it; bestIdx = COSTCO_PRODUCTS.indexOf(COSTCO_PRODUCTS.find(x => x === it || (x.name === it.name && x.grams === it.grams && x.price === it.price))); } });
+        // find best among stocked items preferred
+        const stocked = withPremium.filter(x => x.stock);
+        if (stocked.length) {
+          best = stocked.reduce((a, b) => a.premium <= b.premium ? a : b);
+        }
+        bestIdx = COSTCO_PRODUCTS.findIndex(p => p.name === best.name && p.grams === best.grams && p.price === best.price);
+      }
+
       const tbody = document.getElementById('costcoTable');
       tbody.innerHTML = COSTCO_PRODUCTS.map((p, i) => {
+        const c = computed[i];
         const weightLabel = p.grams >= 31 ? '1 oz' : (p.grams + 'g');
         const priceLabel = p.price != null ? ('NT$ ' + p.price.toLocaleString()) : '登入顯示';
-        const stockLabel = p.stock
-          ? '<span class="stock-ok">有貨</span>'
-          : '<span class="stock-out">缺貨</span>';
-        const useBtn = (p.price != null && [1, 2.5, 5].includes(p.grams))
-          ? `<button class="use-btn" onclick="useProduct(${i})">帶入計算</button>`
-          : '';
-        return `<tr>
-          <td>${p.name}</td>
+        const stockLabel = p.stock ? '<span class="stock-ok">有貨</span>' : '<span class="stock-out">缺貨</span>';
+        const isBest = i === bestIdx && c;
+
+        let netLabel = '—', perGramLabel = '—', premLabel = '—', premClass = '';
+        if (c) {
+          netLabel = 'NT$ ' + Math.round(c.netPrice).toLocaleString();
+          perGramLabel = 'NT$ ' + Math.round(c.perGram).toLocaleString();
+          premClass = c.premium <= 2 ? 'premium-good' : (c.premium > 4 ? 'premium-high' : 'premium-ok');
+          premLabel = '<span class="' + premClass + '">' + c.premium.toFixed(2) + '%</span>';
+        }
+
+        return `<tr class="${isBest ? 'best-row' : ''}">
+          <td><strong>${p.name}</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
           <td>${weightLabel}</td>
           <td>${priceLabel}</td>
+          <td>${netLabel}</td>
+          <td>${perGramLabel}</td>
+          <td>${premLabel}</td>
           <td>${stockLabel}</td>
-          <td>
-            <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--gold);margin-right:8px">購買</a>
-            ${useBtn}
-          </td>
+          <td><a class="buy" href="${p.url}" target="_blank" rel="noopener">購買</a></td>
         </tr>`;
       }).join('');
-    }
 
-    function useProduct(index) {
-      const p = COSTCO_PRODUCTS[index];
-      if (!p || p.price == null) return;
-      if (p.grams === 1) document.getElementById('price1g').value = p.price;
-      else if (p.grams === 2.5) document.getElementById('price25g').value = p.price;
-      else if (p.grams === 5) document.getElementById('price5g').value = p.price;
-      scheduleAutoCalc();
-      document.getElementById('price1g').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function fillCostcoPrices() {
-      document.getElementById('price1g').value = COSTCO_PRICES.g1;
-      document.getElementById('price25g').value = COSTCO_PRICES.g25;
-      document.getElementById('price5g').value = COSTCO_PRICES.g5;
-      scheduleAutoCalc();
+      // recommend
+      const box = document.getElementById('recommendBox');
+      if (bestIdx >= 0 && computed[bestIdx]) {
+        const b = computed[bestIdx];
+        const stockNote = b.stock ? '' : '（目前缺貨，可設到貨通知）';
+        box.innerHTML = `<div class="advice-box strong-buy" style="margin-top:14px">
+          <h3>✅ 目前溢價最低：${b.name} ${b.grams >= 31 ? '1 oz' : b.grams + 'g'}${stockNote}</h3>
+          <p style="font-size:0.95rem">扣除 ${rewardPct}% 回饋後，溢價 <strong>${b.premium.toFixed(2)}%</strong>，
+          實際成本約 <strong>NT$ ${Math.round(b.netPrice).toLocaleString()}</strong>，
+          每公克約 NT$ ${Math.round(b.perGram).toLocaleString()}。</p>
+        </div>`;
+      } else {
+        box.innerHTML = '';
+      }
     }
 
     async function loadSpot() {
@@ -419,10 +340,11 @@
 
         loading.style.display = 'none';
         content.style.display = 'block';
-        calcCompare(true);
+        renderTable();
       } catch (e) {
         loading.textContent = '載入失敗，請稍後再試或檢查網路';
         console.error(e);
+        renderTable();
       }
     }
 
@@ -470,86 +392,7 @@
       }
     }
 
-    function calcOne(grams, priceTwd, usdOz, rewardPct) {
-      if (!priceTwd || priceTwd <= 0) return null;
-      const meltUsd = (grams / 31.1035) * usdOz;
-      const netPrice = priceTwd * (1 - rewardPct / 100);
-      const sellUsd = netPrice / USD_TWD;
-      const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
-      const perGramTwd = netPrice / grams;
-      return { grams, priceTwd, netPrice, meltUsd, sellUsd, premium, perGramTwd, rewardPct };
-    }
-
-    function calcCompare(silent) {
-      if (!currentSpot) {
-        if (!silent) alert('請先等待金價載入完成');
-        return;
-      }
-      const usdOz = currentSpot.spot_usd_oz || 4070;
-      const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
-      const items = [
-        calcOne(1, parseFloat(document.getElementById('price1g').value), usdOz, rewardPct),
-        calcOne(2.5, parseFloat(document.getElementById('price25g').value), usdOz, rewardPct),
-        calcOne(5, parseFloat(document.getElementById('price5g').value), usdOz, rewardPct)
-      ].filter(Boolean);
-
-      if (items.length === 0) {
-        document.getElementById('premiumResult').innerHTML = '';
-        return;
-      }
-
-      let best = items[0];
-      items.forEach(it => { if (it.premium < best.premium) best = it; });
-      const rewardLabel = rewardPct > 0 ? `（已扣 ${rewardPct}% 回饋）` : '（無回饋）';
-
-      const rows = items.map(it => {
-        const isBest = it === best && items.length > 1;
-        let premClass = 'premium-ok';
-        if (it.premium <= 2) premClass = 'premium-good';
-        else if (it.premium > 4) premClass = 'premium-high';
-        return `<tr class="${isBest ? 'best-row' : ''}">
-          <td><strong>${it.grams}g</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
-          <td>NT$ ${Math.round(it.priceTwd).toLocaleString()}</td>
-          <td><strong>NT$ ${Math.round(it.netPrice).toLocaleString()}</strong></td>
-          <td>NT$ ${Math.round(it.perGramTwd).toLocaleString()}</td>
-          <td class="${premClass}">${it.premium.toFixed(2)}%</td>
-        </tr>`;
-      }).join('');
-
-      let recommend = '';
-      if (items.length >= 2) {
-        recommend = `<div class="advice-box strong-buy" style="margin-top:14px">
-          <h3>✅ 建議優先買 ${best.grams}g</h3>
-          <p style="font-size:0.95rem">扣除回饋後，<strong>${best.grams}g</strong> 溢價最低（${best.premium.toFixed(2)}%），
-          實際成本約 <strong>NT$ ${Math.round(best.netPrice).toLocaleString()}</strong>。</p></div>`;
-      } else {
-        const it = items[0];
-        let adviceClass = 'advice-box', title = '⚖️ 尚可接受', text = '溢價在合理範圍。';
-        if (it.premium <= 2) { adviceClass += ' strong-buy'; title = '✅ 相對划算'; text = '可考慮購買。'; }
-        else if (it.premium > 4) { adviceClass += ' caution'; title = '⚠️ 溢價偏高'; text = '建議觀望。'; }
-        recommend = `<div class="${adviceClass}" style="margin-top:14px"><h3>${title}</h3>
-          <p style="font-size:0.95rem">${it.grams}g 實際成本 NT$ ${Math.round(it.netPrice).toLocaleString()}，溢價 ${it.premium.toFixed(2)}%。${text}</p></div>`;
-      }
-
-      document.getElementById('premiumResult').innerHTML = `
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px">目前計算：${rewardLabel}</p>
-        <table class="compare-table">
-          <thead><tr><th>規格</th><th>標價</th><th>扣除回饋後</th><th>每公克</th><th>溢價率</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        ${recommend}
-        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：回饋為估算，實際以銀行入帳為準。非投資建議。</p>`;
-    }
-
-    function scheduleAutoCalc() {
-      clearTimeout(calcTimer);
-      calcTimer = setTimeout(() => calcCompare(true), 300);
-    }
-
-    ['price1g', 'price25g', 'price5g'].forEach(id => {
-      document.getElementById(id).addEventListener('input', scheduleAutoCalc);
-    });
-    document.getElementById('rewardRate').addEventListener('change', scheduleAutoCalc);
+    document.getElementById('rewardRate').addEventListener('change', renderTable);
     document.querySelectorAll('.period-btns button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.period-btns button').forEach(b => b.classList.remove('active'));
@@ -558,7 +401,6 @@
       });
     });
 
-    renderCostcoTable();
     loadSpot();
     loadHistory(7);
   </script>
