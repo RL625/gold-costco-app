@@ -145,7 +145,7 @@
     .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
     .calc-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       margin-bottom: 12px;
     }
@@ -155,7 +155,7 @@
       color: var(--muted);
       margin-bottom: 4px;
     }
-    .calc-item input {
+    .calc-item input, .calc-item select {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
@@ -164,7 +164,7 @@
       font-size: 1rem;
       width: 100%;
     }
-    .calc-item input:focus {
+    .calc-item input:focus, .calc-item select:focus {
       outline: none;
       border-color: var(--gold);
     }
@@ -177,9 +177,10 @@
     .compare-table {
       width: 100%;
       margin-top: 8px;
+      font-size: 0.85rem;
     }
     .compare-table th, .compare-table td {
-      padding: 10px 8px;
+      padding: 10px 6px;
       text-align: center;
     }
     .best-row {
@@ -193,7 +194,7 @@
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 999px;
-      margin-left: 6px;
+      margin-left: 4px;
     }
     .links a {
       color: var(--gold);
@@ -225,6 +226,7 @@
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
+      .compare-table { font-size: 0.75rem; }
     }
   </style>
 </head>
@@ -285,7 +287,7 @@
     <div class="card">
       <h2><span class="icon">🛒</span> 好市多黃金溢價比較</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px">
-        分別輸入 1g / 2.5g / 5g 的好市多售價（TWD），系統會自動計算溢價並告訴你哪個最划算。
+        輸入 1g / 2.5g / 5g 售價，並選擇聯名卡回饋，系統會顯示<strong>扣除回饋後的實際成本與溢價</strong>。
       </p>
       <div class="calc-grid">
         <div class="calc-item">
@@ -294,14 +296,22 @@
         </div>
         <div class="calc-item">
           <label>2.5g 售價 (TWD)</label>
-          <input type="number" id="price25g" placeholder="例如 13000" step="1" min="0" />
+          <input type="number" id="price25g" placeholder="例如 11889" step="1" min="0" />
         </div>
         <div class="calc-item">
           <label>5g 售價 (TWD)</label>
           <input type="number" id="price5g" placeholder="例如 24000" step="1" min="0" />
         </div>
+        <div class="calc-item">
+          <label>聯名卡回饋</label>
+          <select id="rewardRate">
+            <option value="0">無回饋 (0%)</option>
+            <option value="2" selected>賣場 2%（好多金）</option>
+            <option value="3">線上 3%（好多金）</option>
+          </select>
+        </div>
       </div>
-      <p class="auto-hint">✨ 輸入任一售價後會自動比較 · 幣別固定 TWD</p>
+      <p class="auto-hint">✨ 輸入售價或變更回饋後自動計算 · 黑鑽卡 2% 不適用於黃金條塊</p>
       <div id="premiumResult"></div>
     </div>
 
@@ -345,13 +355,13 @@
         <a href="https://www.costco.com.tw/Jewelry-Gold" target="_blank" rel="noopener">貴金屬分類</a>
       </div>
       <div class="advice-box" style="margin-top:16px">
-        <h3>簡易購買建議原則</h3>
+        <h3>簡易購買建議原則（扣除回饋後）</h3>
         <ul style="padding-left:18px;font-size:0.9rem">
-          <li><strong>溢價 ≤ 2%</strong>：相對划算，可考慮入手（尤其長期持有）。</li>
-          <li><strong>溢價 2%–4%</strong>：尚可，比較其他通路或等補貨。</li>
-          <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望或比較銀行/金商條塊。</li>
+          <li><strong>溢價 ≤ 2%</strong>：相對划算，可考慮入手。</li>
+          <li><strong>溢價 2%–4%</strong>：尚可，比較其他通路。</li>
+          <li><strong>溢價 > 4–5%</strong>：偏高，建議觀望。</li>
           <li>小規格（<10g）溢價通常較高，適合送禮或小額配置。</li>
-          <li>好市多限購、常秒殺，需會員；金條轉手便利性高於飾金。</li>
+          <li>黑鑽卡 2% 回饋金不適用於黃金條塊；主要靠富邦聯名卡好多金。</li>
         </ul>
       </div>
     </div>
@@ -471,14 +481,16 @@
       }
     }
 
-    function calcOne(grams, priceTwd, usdOz) {
+    function calcOne(grams, priceTwd, usdOz, rewardPct) {
       if (!priceTwd || priceTwd <= 0) return null;
       const meltUsd = (grams / 31.1035) * usdOz;
-      const sellUsd = priceTwd / USD_TWD;
+      const meltTwd = meltUsd * USD_TWD;
+      const netPrice = priceTwd * (1 - rewardPct / 100);
+      const sellUsd = netPrice / USD_TWD;
       const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
       const premiumAbs = sellUsd - meltUsd;
-      const perGramTwd = priceTwd / grams;
-      return { grams, priceTwd, meltUsd, sellUsd, premium, premiumAbs, perGramTwd };
+      const perGramTwd = netPrice / grams;
+      return { grams, priceTwd, netPrice, meltUsd, meltTwd, sellUsd, premium, premiumAbs, perGramTwd, rewardPct };
     }
 
     function calcCompare(silent) {
@@ -487,10 +499,12 @@
         return;
       }
       const usdOz = currentSpot.spot_usd_oz || 4070;
+      const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
+
       const items = [
-        calcOne(1, parseFloat(document.getElementById('price1g').value), usdOz),
-        calcOne(2.5, parseFloat(document.getElementById('price25g').value), usdOz),
-        calcOne(5, parseFloat(document.getElementById('price5g').value), usdOz)
+        calcOne(1, parseFloat(document.getElementById('price1g').value), usdOz, rewardPct),
+        calcOne(2.5, parseFloat(document.getElementById('price25g').value), usdOz, rewardPct),
+        calcOne(5, parseFloat(document.getElementById('price5g').value), usdOz, rewardPct)
       ].filter(Boolean);
 
       if (items.length === 0) {
@@ -498,11 +512,12 @@
         return;
       }
 
-      // 找溢價最低的
       let best = items[0];
       items.forEach(it => {
         if (it.premium < best.premium) best = it;
       });
+
+      const rewardLabel = rewardPct > 0 ? `（已扣 ${rewardPct}% 回饋）` : '（無回饋）';
 
       let rows = items.map(it => {
         const isBest = it === best && items.length > 1;
@@ -512,10 +527,10 @@
         return `
           <tr class="${isBest ? 'best-row' : ''}">
             <td><strong>${it.grams}g</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
-            <td>NT$ ${it.priceTwd.toLocaleString()}</td>
+            <td>NT$ ${Math.round(it.priceTwd).toLocaleString()}</td>
+            <td><strong>NT$ ${Math.round(it.netPrice).toLocaleString()}</strong></td>
             <td>NT$ ${Math.round(it.perGramTwd).toLocaleString()}</td>
             <td class="${premClass}">${it.premium.toFixed(2)}%</td>
-            <td>$${it.premiumAbs.toFixed(2)}</td>
           </tr>`;
       }).join('');
 
@@ -525,10 +540,10 @@
           <div class="advice-box strong-buy" style="margin-top:14px">
             <h3>✅ 建議優先買 ${best.grams}g</h3>
             <p style="font-size:0.95rem">
-              在你輸入的規格中，<strong>${best.grams}g</strong> 的溢價最低（${best.premium.toFixed(2)}%），
-              每公克約 NT$ ${Math.round(best.perGramTwd).toLocaleString()}，相對最划算。
+              扣除回饋後，<strong>${best.grams}g</strong> 溢價最低（${best.premium.toFixed(2)}%），
+              實際成本約 <strong>NT$ ${Math.round(best.netPrice).toLocaleString()}</strong>，
+              每公克約 NT$ ${Math.round(best.perGramTwd).toLocaleString()}。
             </p>
-            <p style="margin-top:6px;font-size:0.85rem;color:var(--muted)">若只想買小規格送禮，可再權衡預算與需求。</p>
           </div>`;
       } else {
         const it = items[0];
@@ -538,34 +553,35 @@
         if (it.premium <= 2) {
           adviceClass += ' strong-buy';
           title = '✅ 相對划算';
-          text = '溢價較低，可考慮購買。';
+          text = '扣除回饋後溢價較低，可考慮購買。';
         } else if (it.premium > 4) {
           adviceClass += ' caution';
           title = '⚠️ 溢價偏高';
-          text = '相對國際現貨偏貴，建議觀望或比較其他通路。';
+          text = '扣除回饋後仍偏貴，建議觀望或比較其他通路。';
         }
         recommend = `
           <div class="${adviceClass}" style="margin-top:14px">
             <h3>${title}</h3>
-            <p style="font-size:0.95rem">${it.grams}g 溢價 ${it.premium.toFixed(2)}%。${text}</p>
+            <p style="font-size:0.95rem">${it.grams}g 實際成本 NT$ ${Math.round(it.netPrice).toLocaleString()}，溢價 ${it.premium.toFixed(2)}%。${text}</p>
           </div>`;
       }
 
       document.getElementById('premiumResult').innerHTML = `
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px">目前計算：${rewardLabel}</p>
         <table class="compare-table">
           <thead>
             <tr>
               <th>規格</th>
-              <th>售價</th>
+              <th>標價</th>
+              <th>扣除回饋後</th>
               <th>每公克</th>
               <th>溢價率</th>
-              <th>溢價金額(USD)</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
         ${recommend}
-        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：未含稅、運費、會員費；實際轉售會有折價。非投資建議。</p>
+        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：回饋為估算（好多金），實際以銀行入帳為準；黑鑽卡 2% 不適用於黃金條塊。非投資建議。</p>
       `;
     }
 
@@ -577,6 +593,7 @@
     ['price1g', 'price25g', 'price5g'].forEach(id => {
       document.getElementById(id).addEventListener('input', scheduleAutoCalc);
     });
+    document.getElementById('rewardRate').addEventListener('change', scheduleAutoCalc);
 
     document.querySelectorAll('.period-btns button').forEach(btn => {
       btn.addEventListener('click', () => {
