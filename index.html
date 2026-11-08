@@ -280,7 +280,7 @@
         </div>
         <div>
           <label>好市多售價 (USD 或 TWD)</label>
-          <input type="number" id="barPrice" value="24000" step="1" />
+          <input type="number" id="barPrice" value="" step="1" placeholder="輸入售價" />
         </div>
         <div>
           <label>幣別</label>
@@ -293,51 +293,6 @@
       </div>
       <p class="auto-hint">✨ 輸入變更或金價載入後會自動計算</p>
       <div id="premiumResult"></div>
-    </div>
-
-    <div class="card">
-      <h2><span class="icon">🇺🇸</span> 美國 Costco 金條參考（約 2026/11）</h2>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
-        常見 1 oz PAMP / Rand 等，線上常秒殺，店內較穩定。溢價通常約 1.5%–3%。
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>商品</th>
-            <th>重量</th>
-            <th>最近售價</th>
-            <th>溢價</th>
-            <th>建議</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>PAMP Lady Fortuna 1 oz</td>
-            <td>1 oz</td>
-            <td>≈ $4,150–4,160</td>
-            <td class="premium-ok">約 +2%</td>
-            <td>可考慮</td>
-          </tr>
-          <tr>
-            <td>Rand Refinery 1 oz</td>
-            <td>1 oz</td>
-            <td>≈ $4,150–4,160</td>
-            <td class="premium-ok">約 +2%</td>
-            <td>可考慮</td>
-          </tr>
-          <tr>
-            <td>20g / 50g / 100g 系列</td>
-            <td>多種</td>
-            <td>依現貨浮動</td>
-            <td class="premium-ok">約 +1.5–3%</td>
-            <td>視溢價</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="links" style="margin-top:14px">
-        <a href="https://www.costco.com" target="_blank" rel="noopener">Costco.com</a>
-        <a href="https://costcogoldinventory.com" target="_blank" rel="noopener">庫存追蹤網站</a>
-      </div>
     </div>
 
     <div class="card">
@@ -429,7 +384,6 @@
         loading.style.display = 'none';
         content.style.display = 'block';
 
-        // 金價載入後自動計算
         calcPremium(true);
       } catch (e) {
         loading.textContent = '載入失敗，請稍後再試或檢查網路';
@@ -563,7 +517,6 @@
       `;
     }
 
-    // 自動計算（防抖）
     function scheduleAutoCalc() {
       clearTimeout(calcTimer);
       calcTimer = setTimeout(() => calcPremium(true), 300);
