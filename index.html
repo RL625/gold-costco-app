@@ -11,7 +11,6 @@
       --card: #1a2332;
       --border: #2d3a4f;
       --gold: #f5c518;
-      --gold-dim: #c9a227;
       --text: #e8eef7;
       --muted: #8b9bb4;
       --green: #22c55e;
@@ -57,7 +56,6 @@
       align-items: center;
       gap: 8px;
     }
-    .card h2 .icon { font-size: 1.3rem; }
     .price-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -72,180 +70,88 @@
       text-align: center;
     }
     .price-box .label { font-size: 0.75rem; color: var(--muted); }
-    .price-box .value {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--gold);
-      margin: 4px 0;
-    }
+    .price-box .value { font-size: 1.4rem; font-weight: 700; color: var(--gold); margin: 4px 0; }
     .price-box .sub { font-size: 0.8rem; color: var(--muted); }
     .change-up { color: var(--green); }
     .change-down { color: var(--red); }
-    .period-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .period-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .period-btns button {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 0.85rem;
     }
-    .period-btns button.active,
-    .period-btns button:hover {
-      background: var(--gold);
-      color: #0f1419;
-      border-color: var(--gold);
-      font-weight: 600;
+    .period-btns button.active, .period-btns button:hover {
+      background: var(--gold); color: #0f1419; border-color: var(--gold); font-weight: 600;
     }
-    .chart-wrap {
-      position: relative;
-      height: 280px;
-      margin-top: 8px;
-    }
+    .chart-wrap { position: relative; height: 280px; margin-top: 8px; }
     .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 10px;
-      margin-top: 16px;
-      font-size: 0.85rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px; margin-top: 16px; font-size: 0.85rem;
     }
     .stat { text-align: center; }
     .stat .v { font-weight: 600; color: var(--gold); }
     .stat .l { color: var(--muted); font-size: 0.75rem; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-    th, td {
-      padding: 10px 8px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
     .premium-good { color: var(--green); font-weight: 600; }
     .premium-ok { color: var(--gold); font-weight: 600; }
     .premium-high { color: var(--red); font-weight: 600; }
     .advice-box {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 16px;
+      background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px; padding: 16px; margin-top: 16px;
     }
     .advice-box.strong-buy { border-color: var(--green); background: rgba(34, 197, 94, 0.1); }
     .advice-box.caution { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
     .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
     .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 12px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin-bottom: 12px;
     }
-    .calc-item label {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
+    .calc-item label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
     .calc-item input, .calc-item select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 1rem;
-      width: 100%;
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 10px 12px; border-radius: 8px; font-size: 1rem; width: 100%;
     }
-    .calc-item input:focus, .calc-item select:focus {
-      outline: none;
-      border-color: var(--gold);
-    }
-    .auto-hint {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 4px;
-      margin-bottom: 12px;
-    }
-    .compare-table {
-      width: 100%;
-      margin-top: 8px;
-      font-size: 0.85rem;
-    }
-    .compare-table th, .compare-table td {
-      padding: 10px 6px;
-      text-align: center;
-    }
-    .best-row {
-      background: rgba(34, 197, 94, 0.12);
-    }
+    .calc-item input:focus, .calc-item select:focus { outline: none; border-color: var(--gold); }
+    .auto-hint { font-size: 0.8rem; color: var(--muted); margin-top: 4px; margin-bottom: 12px; }
+    .compare-table { width: 100%; margin-top: 8px; font-size: 0.85rem; }
+    .compare-table th, .compare-table td { padding: 10px 6px; text-align: center; }
+    .best-row { background: rgba(34, 197, 94, 0.12); }
     .best-badge {
-      display: inline-block;
-      background: var(--green);
-      color: #0f1419;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
-      margin-left: 4px;
+      display: inline-block; background: var(--green); color: #0f1419;
+      font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 4px;
     }
-    .buy-link {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 0.75rem;
-      color: var(--blue);
-      text-decoration: none;
-    }
+    .buy-link { display: inline-block; margin-top: 4px; font-size: 0.75rem; color: var(--blue); text-decoration: none; }
     .buy-link:hover { text-decoration: underline; color: var(--gold); }
-    .links a {
-      color: var(--gold);
-      text-decoration: none;
-      margin-right: 16px;
-      font-size: 0.9rem;
-    }
+    .stock-ok { color: var(--green); font-weight: 600; }
+    .stock-out { color: var(--red); }
+    .links a { color: var(--gold); text-decoration: none; margin-right: 16px; font-size: 0.9rem; }
     .links a:hover { text-decoration: underline; }
     .disclaimer {
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 24px;
-      padding: 16px;
-      border-top: 1px solid var(--border);
+      font-size: 0.75rem; color: var(--muted); text-align: center;
+      margin-top: 24px; padding: 16px; border-top: 1px solid var(--border);
     }
     .loading { color: var(--muted); text-align: center; padding: 20px; }
     .refresh-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      float: right;
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; float: right;
     }
     .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
     .fill-btn {
-      background: rgba(245,197,24,0.15);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-bottom: 12px;
+      background: rgba(245,197,24,0.15); border: 1px solid var(--gold); color: var(--gold);
+      padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;
     }
     .fill-btn:hover { background: var(--gold); color: #0f1419; }
+    .use-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;
+    }
+    .use-btn:hover { border-color: var(--gold); color: var(--gold); }
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
       .compare-table { font-size: 0.75rem; }
+      table { font-size: 0.75rem; }
     }
   </style>
 </head>
@@ -297,33 +203,28 @@
         <button data-days="180">半年</button>
         <button data-days="365">1 年</button>
       </div>
-      <div class="chart-wrap">
-        <canvas id="goldChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="goldChart"></canvas></div>
       <div class="stats-row" id="chartStats"></div>
     </div>
 
     <div class="card">
       <h2><span class="icon">🛒</span> 好市多黃金溢價比較</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px">
-        已預填目前官網可見售價（未登入也可看到）。可自行修改，並選擇聯名卡回饋。
+        已預填目前官網可見售價。可從下方完整清單「帶入計算」，或自行修改。
       </p>
-      <button class="fill-btn" onclick="fillCostcoPrices()">一鍵填入目前好市多售價</button>
+      <button class="fill-btn" onclick="fillCostcoPrices()">一鍵填入常用規格售價</button>
       <div class="calc-grid">
         <div class="calc-item">
           <label>1g 售價 (TWD)</label>
-          <input type="number" id="price1g" value="5299" placeholder="例如 5500" step="1" min="0" />
-          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">看 1g 商品 →</a>
+          <input type="number" id="price1g" value="5299" step="1" min="0" />
         </div>
         <div class="calc-item">
           <label>2.5g 售價 (TWD)</label>
-          <input type="number" id="price25g" value="11889" placeholder="例如 11889" step="1" min="0" />
-          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600" target="_blank" rel="noopener">PAMP 財富女神 2.5g →</a>
+          <input type="number" id="price25g" value="11889" step="1" min="0" />
         </div>
         <div class="calc-item">
           <label>5g 售價 (TWD)</label>
-          <input type="number" id="price5g" value="23789" placeholder="例如 24000" step="1" min="0" />
-          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877" target="_blank" rel="noopener">PAMP 美國白鷹 5g →</a>
+          <input type="number" id="price5g" value="23789" step="1" min="0" />
         </div>
         <div class="calc-item">
           <label>聯名卡回饋</label>
@@ -339,49 +240,26 @@
     </div>
 
     <div class="card">
-      <h2><span class="icon">🇹🇼</span> 台灣好市多目前金條參考</h2>
+      <h2><span class="icon">🇹🇼</span> 好市多貴金屬分類全部商品（共 9 筆）</h2>
       <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
-        以下為目前官網可直接看到的售價（未登入）。庫存與價格會變動，請以官網為準。
+        資料來源：costco.com.tw 貴金屬、黃金條塊分類（未登入可見）。更新時間約 2026/11/08。
       </p>
-      <table>
-        <thead>
-          <tr>
-            <th>商品</th>
-            <th>重量</th>
-            <th>目前售價</th>
-            <th>購買</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>PAMP 財富女神</td>
-            <td>2.5g</td>
-            <td>NT$ 11,889</td>
-            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600" target="_blank" rel="noopener" style="color:var(--gold)">前往 →</a></td>
-          </tr>
-          <tr>
-            <td>PAMP 美國白鷹</td>
-            <td>5g</td>
-            <td>NT$ 23,789</td>
-            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877" target="_blank" rel="noopener" style="color:var(--gold)">前往 →</a></td>
-          </tr>
-          <tr>
-            <td>其他 5g 款</td>
-            <td>5g</td>
-            <td>約 NT$ 24,269</td>
-            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener" style="color:var(--gold)">分類頁 →</a></td>
-          </tr>
-          <tr>
-            <td>1g 紀念款等</td>
-            <td>1g</td>
-            <td>約 NT$ 5,299</td>
-            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener" style="color:var(--gold)">分類頁 →</a></td>
-          </tr>
-        </tbody>
-      </table>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>商品</th>
+              <th>重量</th>
+              <th>售價</th>
+              <th>庫存</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="costcoTable"></tbody>
+        </table>
+      </div>
       <div class="links" style="margin-top:14px">
-        <a href="https://www.costco.com.tw" target="_blank" rel="noopener">好市多台灣官網</a>
-        <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">貴金屬、黃金條塊</a>
+        <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">開啟完整分類頁 →</a>
       </div>
       <div class="advice-box" style="margin-top:16px">
         <h3>簡易購買建議原則（扣除回饋後）</h3>
@@ -396,8 +274,8 @@
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考，金價來自公開 API（約 1 分鐘延遲），好市多價格為手動更新參考，實際以現場或官網為準。<br>
-      非投資建議。購買黃金有市場風險，請自行評估並諮詢專業人士。資料更新時間以頁面顯示為準。
+      本工具僅供資訊參考，金價來自公開 API，好市多價格為手動擷取參考，實際以現場或官網為準。<br>
+      非投資建議。購買黃金有市場風險，請自行評估並諮詢專業人士。
     </div>
   </div>
 
@@ -407,8 +285,108 @@
     let currentSpot = null;
     let calcTimer = null;
 
-    // 目前官網可見售價（手動更新）
+    // 好市多貴金屬分類完整清單（2026/11/08 擷取）
+    const COSTCO_PRODUCTS = [
+      {
+        name: 'APMEX 羊年黃金條塊',
+        grams: 1,
+        price: 5299,
+        stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110'
+      },
+      {
+        name: 'PAMP 財富女神',
+        grams: 2.5,
+        price: 11889,
+        stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600'
+      },
+      {
+        name: 'PAMP 美國白鷹',
+        grams: 5,
+        price: 23789,
+        stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877'
+      },
+      {
+        name: 'PAMP 財富女神',
+        grams: 5,
+        price: 23649,
+        stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-5-g/p/155641'
+      },
+      {
+        name: 'PAMP 幸運草',
+        grams: 5,
+        price: 24269,
+        stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Lucky-Clover-Gold-Ingot-5-g/p/159852'
+      },
+      {
+        name: 'PAMP Fender 吉他撥片幣',
+        grams: 5,
+        price: 27069,
+        stock: true,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fender-75th-Anniversary-Gold-Guitar-Pick-Coin-9999-Fine-Gold-5g/p/163768'
+      },
+      {
+        name: 'PAMP 財富女神',
+        grams: 10,
+        price: null,
+        stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-10-g/p/146044'
+      },
+      {
+        name: 'PAMP 財富女神',
+        grams: 20,
+        price: null,
+        stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-20-g/p/146047'
+      },
+      {
+        name: '伯斯鑄幣廠 黑天鵝',
+        grams: 31.1035,
+        price: 141499,
+        stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793'
+      }
+    ];
+
     const COSTCO_PRICES = { g1: 5299, g25: 11889, g5: 23789 };
+
+    function renderCostcoTable() {
+      const tbody = document.getElementById('costcoTable');
+      tbody.innerHTML = COSTCO_PRODUCTS.map((p, i) => {
+        const weightLabel = p.grams >= 31 ? '1 oz' : (p.grams + 'g');
+        const priceLabel = p.price != null ? ('NT$ ' + p.price.toLocaleString()) : '登入顯示';
+        const stockLabel = p.stock
+          ? '<span class="stock-ok">有貨</span>'
+          : '<span class="stock-out">缺貨</span>';
+        const useBtn = (p.price != null && [1, 2.5, 5].includes(p.grams))
+          ? `<button class="use-btn" onclick="useProduct(${i})">帶入計算</button>`
+          : '';
+        return `<tr>
+          <td>${p.name}</td>
+          <td>${weightLabel}</td>
+          <td>${priceLabel}</td>
+          <td>${stockLabel}</td>
+          <td>
+            <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--gold);margin-right:8px">購買</a>
+            ${useBtn}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function useProduct(index) {
+      const p = COSTCO_PRODUCTS[index];
+      if (!p || p.price == null) return;
+      if (p.grams === 1) document.getElementById('price1g').value = p.price;
+      else if (p.grams === 2.5) document.getElementById('price25g').value = p.price;
+      else if (p.grams === 5) document.getElementById('price5g').value = p.price;
+      scheduleAutoCalc();
+      document.getElementById('price1g').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
     function fillCostcoPrices() {
       document.getElementById('price1g').value = COSTCO_PRICES.g1;
@@ -435,14 +413,12 @@
         document.getElementById('priceGramUsd').textContent = '$' + gramUsd.toFixed(2);
         document.getElementById('priceGramTwd').textContent = 'NT$' + Math.round(gramTwd).toLocaleString();
         document.getElementById('priceQian').textContent = 'NT$' + Math.round(qian).toLocaleString();
-
         document.getElementById('changeUsd').textContent = '即時現貨';
         document.getElementById('changeUsd').className = 'sub';
         document.getElementById('updatedAt').textContent = '更新時間：' + new Date().toLocaleString('zh-TW') + ' · 資料來源 xaus.com';
 
         loading.style.display = 'none';
         content.style.display = 'block';
-
         calcCompare(true);
       } catch (e) {
         loading.textContent = '載入失敗，請稍後再試或檢查網路';
@@ -457,62 +433,36 @@
         const points = data.points || [];
         const labels = points.map(p => p.d);
         const closes = points.map(p => p.c);
-
         const ctx = document.getElementById('goldChart').getContext('2d');
         if (chart) chart.destroy();
-
         chart = new Chart(ctx, {
           type: 'line',
           data: {
             labels,
             datasets: [{
-              label: '金價 (USD/oz)',
-              data: closes,
-              borderColor: '#f5c518',
-              backgroundColor: 'rgba(245, 197, 24, 0.15)',
-              fill: true,
-              tension: 0.3,
-              pointRadius: days > 90 ? 0 : 2,
-              borderWidth: 2
+              label: '金價 (USD/oz)', data: closes, borderColor: '#f5c518',
+              backgroundColor: 'rgba(245, 197, 24, 0.15)', fill: true, tension: 0.3,
+              pointRadius: days > 90 ? 0 : 2, borderWidth: 2
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: ctx => '$' + ctx.parsed.y.toFixed(2)
-                }
-              }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
             scales: {
-              x: {
-                ticks: { color: '#8b9bb4', maxTicksLimit: 8 },
-                grid: { color: 'rgba(45,58,79,0.5)' }
-              },
-              y: {
-                ticks: { color: '#8b9bb4', callback: v => '$' + v },
-                grid: { color: 'rgba(45,58,79,0.5)' }
-              }
+              x: { ticks: { color: '#8b9bb4', maxTicksLimit: 8 }, grid: { color: 'rgba(45,58,79,0.5)' } },
+              y: { ticks: { color: '#8b9bb4', callback: v => '$' + v }, grid: { color: 'rgba(45,58,79,0.5)' } }
             }
           }
         });
-
         if (closes.length > 1) {
-          const first = closes[0];
-          const last = closes[closes.length - 1];
-          const change = last - first;
-          const pct = (change / first * 100).toFixed(2);
-          const high = Math.max(...closes);
-          const low = Math.min(...closes);
+          const first = closes[0], last = closes[closes.length - 1];
+          const change = last - first, pct = (change / first * 100).toFixed(2);
+          const high = Math.max(...closes), low = Math.min(...closes);
           document.getElementById('chartStats').innerHTML = `
             <div class="stat"><div class="v">$${last.toFixed(1)}</div><div class="l">最新收盤</div></div>
             <div class="stat"><div class="v ${change >= 0 ? 'change-up' : 'change-down'}">${change >= 0 ? '+' : ''}${pct}%</div><div class="l">期間漲跌</div></div>
             <div class="stat"><div class="v">$${high.toFixed(1)}</div><div class="l">期間最高</div></div>
-            <div class="stat"><div class="v">$${low.toFixed(1)}</div><div class="l">期間最低</div></div>
-          `;
+            <div class="stat"><div class="v">$${low.toFixed(1)}</div><div class="l">期間最低</div></div>`;
         }
       } catch (e) {
         console.error(e);
@@ -523,13 +473,11 @@
     function calcOne(grams, priceTwd, usdOz, rewardPct) {
       if (!priceTwd || priceTwd <= 0) return null;
       const meltUsd = (grams / 31.1035) * usdOz;
-      const meltTwd = meltUsd * USD_TWD;
       const netPrice = priceTwd * (1 - rewardPct / 100);
       const sellUsd = netPrice / USD_TWD;
       const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
-      const premiumAbs = sellUsd - meltUsd;
       const perGramTwd = netPrice / grams;
-      return { grams, priceTwd, netPrice, meltUsd, meltTwd, sellUsd, premium, premiumAbs, perGramTwd, rewardPct };
+      return { grams, priceTwd, netPrice, meltUsd, sellUsd, premium, perGramTwd, rewardPct };
     }
 
     function calcCompare(silent) {
@@ -539,7 +487,6 @@
       }
       const usdOz = currentSpot.spot_usd_oz || 4070;
       const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
-
       const items = [
         calcOne(1, parseFloat(document.getElementById('price1g').value), usdOz, rewardPct),
         calcOne(2.5, parseFloat(document.getElementById('price25g').value), usdOz, rewardPct),
@@ -552,76 +499,46 @@
       }
 
       let best = items[0];
-      items.forEach(it => {
-        if (it.premium < best.premium) best = it;
-      });
-
+      items.forEach(it => { if (it.premium < best.premium) best = it; });
       const rewardLabel = rewardPct > 0 ? `（已扣 ${rewardPct}% 回饋）` : '（無回饋）';
 
-      let rows = items.map(it => {
+      const rows = items.map(it => {
         const isBest = it === best && items.length > 1;
         let premClass = 'premium-ok';
         if (it.premium <= 2) premClass = 'premium-good';
         else if (it.premium > 4) premClass = 'premium-high';
-        return `
-          <tr class="${isBest ? 'best-row' : ''}">
-            <td><strong>${it.grams}g</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
-            <td>NT$ ${Math.round(it.priceTwd).toLocaleString()}</td>
-            <td><strong>NT$ ${Math.round(it.netPrice).toLocaleString()}</strong></td>
-            <td>NT$ ${Math.round(it.perGramTwd).toLocaleString()}</td>
-            <td class="${premClass}">${it.premium.toFixed(2)}%</td>
-          </tr>`;
+        return `<tr class="${isBest ? 'best-row' : ''}">
+          <td><strong>${it.grams}g</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
+          <td>NT$ ${Math.round(it.priceTwd).toLocaleString()}</td>
+          <td><strong>NT$ ${Math.round(it.netPrice).toLocaleString()}</strong></td>
+          <td>NT$ ${Math.round(it.perGramTwd).toLocaleString()}</td>
+          <td class="${premClass}">${it.premium.toFixed(2)}%</td>
+        </tr>`;
       }).join('');
 
       let recommend = '';
       if (items.length >= 2) {
-        recommend = `
-          <div class="advice-box strong-buy" style="margin-top:14px">
-            <h3>✅ 建議優先買 ${best.grams}g</h3>
-            <p style="font-size:0.95rem">
-              扣除回饋後，<strong>${best.grams}g</strong> 溢價最低（${best.premium.toFixed(2)}%），
-              實際成本約 <strong>NT$ ${Math.round(best.netPrice).toLocaleString()}</strong>，
-              每公克約 NT$ ${Math.round(best.perGramTwd).toLocaleString()}。
-            </p>
-          </div>`;
+        recommend = `<div class="advice-box strong-buy" style="margin-top:14px">
+          <h3>✅ 建議優先買 ${best.grams}g</h3>
+          <p style="font-size:0.95rem">扣除回饋後，<strong>${best.grams}g</strong> 溢價最低（${best.premium.toFixed(2)}%），
+          實際成本約 <strong>NT$ ${Math.round(best.netPrice).toLocaleString()}</strong>。</p></div>`;
       } else {
         const it = items[0];
-        let adviceClass = 'advice-box';
-        let title = '⚖️ 尚可接受';
-        let text = '溢價在合理範圍，可比較其他通路。';
-        if (it.premium <= 2) {
-          adviceClass += ' strong-buy';
-          title = '✅ 相對划算';
-          text = '扣除回饋後溢價較低，可考慮購買。';
-        } else if (it.premium > 4) {
-          adviceClass += ' caution';
-          title = '⚠️ 溢價偏高';
-          text = '扣除回饋後仍偏貴，建議觀望或比較其他通路。';
-        }
-        recommend = `
-          <div class="${adviceClass}" style="margin-top:14px">
-            <h3>${title}</h3>
-            <p style="font-size:0.95rem">${it.grams}g 實際成本 NT$ ${Math.round(it.netPrice).toLocaleString()}，溢價 ${it.premium.toFixed(2)}%。${text}</p>
-          </div>`;
+        let adviceClass = 'advice-box', title = '⚖️ 尚可接受', text = '溢價在合理範圍。';
+        if (it.premium <= 2) { adviceClass += ' strong-buy'; title = '✅ 相對划算'; text = '可考慮購買。'; }
+        else if (it.premium > 4) { adviceClass += ' caution'; title = '⚠️ 溢價偏高'; text = '建議觀望。'; }
+        recommend = `<div class="${adviceClass}" style="margin-top:14px"><h3>${title}</h3>
+          <p style="font-size:0.95rem">${it.grams}g 實際成本 NT$ ${Math.round(it.netPrice).toLocaleString()}，溢價 ${it.premium.toFixed(2)}%。${text}</p></div>`;
       }
 
       document.getElementById('premiumResult').innerHTML = `
         <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px">目前計算：${rewardLabel}</p>
         <table class="compare-table">
-          <thead>
-            <tr>
-              <th>規格</th>
-              <th>標價</th>
-              <th>扣除回饋後</th>
-              <th>每公克</th>
-              <th>溢價率</th>
-            </tr>
-          </thead>
+          <thead><tr><th>規格</th><th>標價</th><th>扣除回饋後</th><th>每公克</th><th>溢價率</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         ${recommend}
-        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：回饋為估算（好多金），實際以銀行入帳為準；黑鑽卡 2% 不適用於黃金條塊。非投資建議。</p>
-      `;
+        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：回饋為估算，實際以銀行入帳為準。非投資建議。</p>`;
     }
 
     function scheduleAutoCalc() {
@@ -633,7 +550,6 @@
       document.getElementById(id).addEventListener('input', scheduleAutoCalc);
     });
     document.getElementById('rewardRate').addEventListener('change', scheduleAutoCalc);
-
     document.querySelectorAll('.period-btns button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.period-btns button').forEach(b => b.classList.remove('active'));
@@ -642,6 +558,7 @@
       });
     });
 
+    renderCostcoTable();
     loadSpot();
     loadHistory(7);
   </script>
