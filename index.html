@@ -196,6 +196,14 @@
       border-radius: 999px;
       margin-left: 4px;
     }
+    .buy-link {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--blue);
+      text-decoration: none;
+    }
+    .buy-link:hover { text-decoration: underline; color: var(--gold); }
     .links a {
       color: var(--gold);
       text-decoration: none;
@@ -223,6 +231,17 @@
       float: right;
     }
     .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .fill-btn {
+      background: rgba(245,197,24,0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+    .fill-btn:hover { background: var(--gold); color: #0f1419; }
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
@@ -286,21 +305,25 @@
 
     <div class="card">
       <h2><span class="icon">🛒</span> 好市多黃金溢價比較</h2>
-      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px">
-        輸入 1g / 2.5g / 5g 售價，並選擇聯名卡回饋，系統會顯示<strong>扣除回饋後的實際成本與溢價</strong>。
+      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px">
+        已預填目前官網可見售價（未登入也可看到）。可自行修改，並選擇聯名卡回饋。
       </p>
+      <button class="fill-btn" onclick="fillCostcoPrices()">一鍵填入目前好市多售價</button>
       <div class="calc-grid">
         <div class="calc-item">
           <label>1g 售價 (TWD)</label>
-          <input type="number" id="price1g" placeholder="例如 5500" step="1" min="0" />
+          <input type="number" id="price1g" value="5299" placeholder="例如 5500" step="1" min="0" />
+          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">看 1g 商品 →</a>
         </div>
         <div class="calc-item">
           <label>2.5g 售價 (TWD)</label>
-          <input type="number" id="price25g" placeholder="例如 11889" step="1" min="0" />
+          <input type="number" id="price25g" value="11889" placeholder="例如 11889" step="1" min="0" />
+          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600" target="_blank" rel="noopener">PAMP 財富女神 2.5g →</a>
         </div>
         <div class="calc-item">
           <label>5g 售價 (TWD)</label>
-          <input type="number" id="price5g" placeholder="例如 24000" step="1" min="0" />
+          <input type="number" id="price5g" value="23789" placeholder="例如 24000" step="1" min="0" />
+          <a class="buy-link" href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877" target="_blank" rel="noopener">PAMP 美國白鷹 5g →</a>
         </div>
         <div class="calc-item">
           <label>聯名卡回饋</label>
@@ -316,37 +339,43 @@
     </div>
 
     <div class="card">
-      <h2><span class="icon">🇹🇼</span> 台灣好市多 (Costco.com.tw) 參考</h2>
+      <h2><span class="icon">🇹🇼</span> 台灣好市多目前金條參考</h2>
       <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">
-        台灣多為小規格（2.5g、5g、10g、50g 等）PAMP 或紀念款，常缺貨。溢價通常比美國略高。請以官網即時價格為準。
+        以下為目前官網可直接看到的售價（未登入）。庫存與價格會變動，請以官網為準。
       </p>
       <table>
         <thead>
           <tr>
-            <th>商品範例</th>
+            <th>商品</th>
             <th>重量</th>
-            <th>參考售價 (TWD)</th>
-            <th>說明</th>
+            <th>目前售價</th>
+            <th>購買</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>PAMP 財富女神 / 白鷹等</td>
-            <td>2.5g – 5g</td>
-            <td>約 1.2萬 – 2.5萬</td>
-            <td>常缺貨，溢價較高</td>
+            <td>PAMP 財富女神</td>
+            <td>2.5g</td>
+            <td>NT$ 11,889</td>
+            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600" target="_blank" rel="noopener" style="color:var(--gold)">前往 →</a></td>
           </tr>
           <tr>
-            <td>紀念款 / 龍年等</td>
-            <td>1 oz 或 5g</td>
-            <td>約 7–14 萬</td>
-            <td>收藏溢價可能更高</td>
+            <td>PAMP 美國白鷹</td>
+            <td>5g</td>
+            <td>NT$ 23,789</td>
+            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877" target="_blank" rel="noopener" style="color:var(--gold)">前往 →</a></td>
           </tr>
           <tr>
-            <td>50g 浮雕龍等</td>
-            <td>50g</td>
-            <td>約 29 萬</td>
-            <td>大規格較接近現貨</td>
+            <td>其他 5g 款</td>
+            <td>5g</td>
+            <td>約 NT$ 24,269</td>
+            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener" style="color:var(--gold)">分類頁 →</a></td>
+          </tr>
+          <tr>
+            <td>1g 紀念款等</td>
+            <td>1g</td>
+            <td>約 NT$ 5,299</td>
+            <td><a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener" style="color:var(--gold)">分類頁 →</a></td>
           </tr>
         </tbody>
       </table>
@@ -367,7 +396,7 @@
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考，金價來自公開 API（約 1 分鐘延遲），好市多價格為估算/歷史參考，實際以現場或官網為準。<br>
+      本工具僅供資訊參考，金價來自公開 API（約 1 分鐘延遲），好市多價格為手動更新參考，實際以現場或官網為準。<br>
       非投資建議。購買黃金有市場風險，請自行評估並諮詢專業人士。資料更新時間以頁面顯示為準。
     </div>
   </div>
@@ -377,6 +406,16 @@
     let chart = null;
     let currentSpot = null;
     let calcTimer = null;
+
+    // 目前官網可見售價（手動更新）
+    const COSTCO_PRICES = { g1: 5299, g25: 11889, g5: 23789 };
+
+    function fillCostcoPrices() {
+      document.getElementById('price1g').value = COSTCO_PRICES.g1;
+      document.getElementById('price25g').value = COSTCO_PRICES.g25;
+      document.getElementById('price5g').value = COSTCO_PRICES.g5;
+      scheduleAutoCalc();
+    }
 
     async function loadSpot() {
       const loading = document.getElementById('spotLoading');
