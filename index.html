@@ -29,7 +29,7 @@
       background: var(--card); border: 1px solid var(--border); border-radius: 16px;
       padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
-    .card h2 { font-size: 1.15rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .card h2 { font-size: 1.15rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .price-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;
     }
@@ -76,16 +76,21 @@
       border-radius: 12px; padding: 16px; margin-top: 16px;
     }
     .advice-box.strong-buy { border-color: var(--green); background: rgba(34, 197, 94, 0.1); }
-    .advice-box.caution { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
     .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
     .calc-bar {
       display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 14px;
     }
     .calc-bar label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-    .calc-bar select {
+    .calc-bar select, .calc-bar input {
       background: var(--bg); border: 1px solid var(--border); color: var(--text);
       padding: 10px 12px; border-radius: 8px; font-size: 0.95rem;
     }
+    .calc-bar input { min-width: 220px; }
+    .btn {
+      background: rgba(245,197,24,0.15); border: 1px solid var(--gold); color: var(--gold);
+      padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn:hover { background: var(--gold); color: #0f1419; }
     .links a { color: var(--gold); text-decoration: none; margin-right: 16px; font-size: 0.9rem; }
     .links a:hover { text-decoration: underline; }
     .disclaimer {
@@ -95,11 +100,14 @@
     .loading { color: var(--muted); text-align: center; padding: 20px; }
     .refresh-btn {
       background: transparent; border: 1px solid var(--border); color: var(--muted);
-      padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; float: right;
+      padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; margin-left: auto;
     }
     .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
     a.buy { color: var(--gold); text-decoration: none; }
     a.buy:hover { text-decoration: underline; }
+    .status { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+    .status.live { color: var(--green); }
+    .status.fallback { color: var(--gold); }
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
@@ -161,9 +169,11 @@
     </div>
 
     <div class="card">
-      <h2>🛒 好市多黃金 · 溢價比較（全部商品）</h2>
-      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px">
-        直接列出貴金屬分類全部商品，並依目前金價與回饋自動計算溢價。資料約 2026/11/08。
+      <h2>🛒 好市多黃金 · 溢價比較
+        <button class="refresh-btn" onclick="loadCostco(true)">更新好市多</button>
+      </h2>
+      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">
+        部署 Cloudflare Worker 後可即時抓取；未設定則使用內建備援資料。
       </p>
 
       <div class="calc-bar">
@@ -175,7 +185,14 @@
             <option value="3" selected>線上 3%（好多金）</option>
           </select>
         </div>
+        <div style="flex:1;min-width:200px">
+          <label>Worker 網址（可選）</label>
+          <input type="url" id="workerUrl" placeholder="https://你的-worker.workers.dev" />
+        </div>
+        <button class="btn" onclick="saveWorkerUrl()">儲存</button>
       </div>
+
+      <p id="costcoStatus" class="status">讀取中...</p>
 
       <div style="overflow-x:auto">
         <table>
@@ -199,6 +216,7 @@
 
       <div class="links" style="margin-top:14px">
         <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">開啟好市多分類頁 →</a>
+        <a href="https://github.com/RL625/gold-costco-app/blob/main/worker.js" target="_blank" rel="noopener">Worker 程式碼 →</a>
       </div>
 
       <div class="advice-box" style="margin-top:16px">
@@ -213,7 +231,7 @@
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考，金價來自公開 API，好市多價格為手動擷取，實際以官網為準。<br>
+      本工具僅供資訊參考。金價來自公開 API；好市多經 Worker 代理或備援資料，實際以官網為準。<br>
       非投資建議。購買黃金有市場風險，請自行評估。
     </div>
   </div>
@@ -222,8 +240,10 @@
     const USD_TWD = 32.85;
     let chart = null;
     let currentSpot = null;
+    let costcoProducts = [];
 
-    const COSTCO_PRODUCTS = [
+    // 備援資料（Worker 失敗時使用）
+    const FALLBACK_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
       { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: true,
@@ -244,8 +264,58 @@
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793' }
     ];
 
+    function getWorkerUrl() {
+      return (localStorage.getItem('costcoWorkerUrl') || document.getElementById('workerUrl').value || '').trim();
+    }
+
+    function saveWorkerUrl() {
+      const url = document.getElementById('workerUrl').value.trim();
+      if (url) localStorage.setItem('costcoWorkerUrl', url);
+      else localStorage.removeItem('costcoWorkerUrl');
+      loadCostco(true);
+    }
+
+    async function loadCostco(force) {
+      const status = document.getElementById('costcoStatus');
+      const workerUrl = getWorkerUrl();
+      document.getElementById('workerUrl').value = workerUrl;
+
+      if (!workerUrl) {
+        costcoProducts = FALLBACK_PRODUCTS.slice();
+        status.className = 'status fallback';
+        status.textContent = '使用內建備援資料（尚未設定 Worker）。部署 worker.js 後填入網址即可即時更新。';
+        renderTable();
+        return;
+      }
+
+      status.className = 'status';
+      status.textContent = '正在從 Worker 抓取好市多最新售價...';
+      try {
+        const res = await fetch(workerUrl + (force ? ('?t=' + Date.now()) : ''), { cache: 'no-store' });
+        const data = await res.json();
+        if (!data.ok || !Array.isArray(data.products)) throw new Error(data.error || '格式錯誤');
+        costcoProducts = data.products.map(p => ({
+          name: p.name,
+          grams: p.grams,
+          price: p.price,
+          stock: !!p.stock,
+          url: p.url
+        }));
+        status.className = 'status live';
+        status.textContent = '即時資料 · ' + (data.count || costcoProducts.length) + ' 筆 · 更新於 ' +
+          (data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-TW') : new Date().toLocaleString('zh-TW'));
+        renderTable();
+      } catch (e) {
+        console.error(e);
+        costcoProducts = FALLBACK_PRODUCTS.slice();
+        status.className = 'status fallback';
+        status.textContent = 'Worker 讀取失敗，改用備援資料。' + (e.message ? ' (' + e.message + ')' : '');
+        renderTable();
+      }
+    }
+
     function calcItem(p, usdOz, rewardPct) {
-      if (p.price == null || p.price <= 0) return null;
+      if (p.price == null || p.price <= 0 || !p.grams) return null;
       const meltUsd = (p.grams / 31.1035) * usdOz;
       const netPrice = p.price * (1 - rewardPct / 100);
       const sellUsd = netPrice / USD_TWD;
@@ -255,39 +325,35 @@
     }
 
     function renderTable() {
+      const list = costcoProducts.length ? costcoProducts : FALLBACK_PRODUCTS;
       const usdOz = currentSpot ? (currentSpot.spot_usd_oz || 4070) : 4070;
       const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
+      const computed = list.map(p => calcItem(p, usdOz, rewardPct));
 
-      const computed = COSTCO_PRODUCTS.map(p => calcItem(p, usdOz, rewardPct));
-      const withPremium = computed.filter(Boolean);
       let bestIdx = -1;
-      if (withPremium.length) {
-        let best = withPremium[0];
-        withPremium.forEach((it, i) => { if (it.premium < best.premium) { best = it; bestIdx = COSTCO_PRODUCTS.indexOf(COSTCO_PRODUCTS.find(x => x === it || (x.name === it.name && x.grams === it.grams && x.price === it.price))); } });
-        // find best among stocked items preferred
-        const stocked = withPremium.filter(x => x.stock);
-        if (stocked.length) {
-          best = stocked.reduce((a, b) => a.premium <= b.premium ? a : b);
-        }
-        bestIdx = COSTCO_PRODUCTS.findIndex(p => p.name === best.name && p.grams === best.grams && p.price === best.price);
+      const stocked = computed
+        .map((c, i) => c && list[i].stock ? { c, i } : null)
+        .filter(Boolean);
+      if (stocked.length) {
+        bestIdx = stocked.reduce((a, b) => a.c.premium <= b.c.premium ? a : b).i;
+      } else {
+        const any = computed.map((c, i) => c ? { c, i } : null).filter(Boolean);
+        if (any.length) bestIdx = any.reduce((a, b) => a.c.premium <= b.c.premium ? a : b).i;
       }
 
-      const tbody = document.getElementById('costcoTable');
-      tbody.innerHTML = COSTCO_PRODUCTS.map((p, i) => {
+      document.getElementById('costcoTable').innerHTML = list.map((p, i) => {
         const c = computed[i];
-        const weightLabel = p.grams >= 31 ? '1 oz' : (p.grams + 'g');
-        const priceLabel = p.price != null ? ('NT$ ' + p.price.toLocaleString()) : '登入顯示';
+        const weightLabel = p.grams == null ? '—' : (p.grams >= 31 ? '1 oz' : (p.grams + 'g'));
+        const priceLabel = p.price != null ? ('NT$ ' + Number(p.price).toLocaleString()) : '登入顯示';
         const stockLabel = p.stock ? '<span class="stock-ok">有貨</span>' : '<span class="stock-out">缺貨</span>';
         const isBest = i === bestIdx && c;
-
-        let netLabel = '—', perGramLabel = '—', premLabel = '—', premClass = '';
+        let netLabel = '—', perGramLabel = '—', premLabel = '—';
         if (c) {
           netLabel = 'NT$ ' + Math.round(c.netPrice).toLocaleString();
           perGramLabel = 'NT$ ' + Math.round(c.perGram).toLocaleString();
-          premClass = c.premium <= 2 ? 'premium-good' : (c.premium > 4 ? 'premium-high' : 'premium-ok');
+          const premClass = c.premium <= 2 ? 'premium-good' : (c.premium > 4 ? 'premium-high' : 'premium-ok');
           premLabel = '<span class="' + premClass + '">' + c.premium.toFixed(2) + '%</span>';
         }
-
         return `<tr class="${isBest ? 'best-row' : ''}">
           <td><strong>${p.name}</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
           <td>${weightLabel}</td>
@@ -300,20 +366,16 @@
         </tr>`;
       }).join('');
 
-      // recommend
       const box = document.getElementById('recommendBox');
       if (bestIdx >= 0 && computed[bestIdx]) {
         const b = computed[bestIdx];
-        const stockNote = b.stock ? '' : '（目前缺貨，可設到貨通知）';
+        const stockNote = b.stock ? '' : '（目前缺貨）';
+        const w = b.grams >= 31 ? '1 oz' : (b.grams + 'g');
         box.innerHTML = `<div class="advice-box strong-buy" style="margin-top:14px">
-          <h3>✅ 目前溢價最低：${b.name} ${b.grams >= 31 ? '1 oz' : b.grams + 'g'}${stockNote}</h3>
+          <h3>✅ 目前溢價最低：${b.name} ${w}${stockNote}</h3>
           <p style="font-size:0.95rem">扣除 ${rewardPct}% 回饋後，溢價 <strong>${b.premium.toFixed(2)}%</strong>，
-          實際成本約 <strong>NT$ ${Math.round(b.netPrice).toLocaleString()}</strong>，
-          每公克約 NT$ ${Math.round(b.perGram).toLocaleString()}。</p>
-        </div>`;
-      } else {
-        box.innerHTML = '';
-      }
+          實際成本約 <strong>NT$ ${Math.round(b.netPrice).toLocaleString()}</strong>。</p></div>`;
+      } else box.innerHTML = '';
     }
 
     async function loadSpot() {
@@ -329,20 +391,17 @@
         const gramUsd = data.per_gram_usd || (usdOz / 31.1035);
         const gramTwd = gramUsd * USD_TWD;
         const qian = gramTwd * 3.75;
-
         document.getElementById('priceUsd').textContent = '$' + usdOz.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('priceGramUsd').textContent = '$' + gramUsd.toFixed(2);
         document.getElementById('priceGramTwd').textContent = 'NT$' + Math.round(gramTwd).toLocaleString();
         document.getElementById('priceQian').textContent = 'NT$' + Math.round(qian).toLocaleString();
         document.getElementById('changeUsd').textContent = '即時現貨';
-        document.getElementById('changeUsd').className = 'sub';
         document.getElementById('updatedAt').textContent = '更新時間：' + new Date().toLocaleString('zh-TW') + ' · 資料來源 xaus.com';
-
         loading.style.display = 'none';
         content.style.display = 'block';
         renderTable();
       } catch (e) {
-        loading.textContent = '載入失敗，請稍後再試或檢查網路';
+        loading.textContent = '載入失敗，請稍後再試';
         console.error(e);
         renderTable();
       }
@@ -401,8 +460,11 @@
       });
     });
 
+    const saved = localStorage.getItem('costcoWorkerUrl') || '';
+    document.getElementById('workerUrl').value = saved;
     loadSpot();
     loadHistory(7);
+    loadCostco(false);
   </script>
 </body>
 </html>
