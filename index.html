@@ -143,36 +143,57 @@
     .advice-box.strong-buy { border-color: var(--green); background: rgba(34, 197, 94, 0.1); }
     .advice-box.caution { border-color: var(--red); background: rgba(239, 68, 68, 0.1); }
     .advice-box h3 { margin-bottom: 8px; font-size: 1rem; }
-    .calc-row {
-      display: flex;
-      flex-wrap: wrap;
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 12px;
-      align-items: flex-end;
       margin-bottom: 12px;
     }
-    .calc-row label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-    .calc-row input, .calc-row select {
+    .calc-item label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .calc-item input {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 1rem;
-      width: 140px;
+      width: 100%;
     }
-    .calc-row button {
-      background: var(--gold);
-      color: #0f1419;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
+    .calc-item input:focus {
+      outline: none;
+      border-color: var(--gold);
     }
     .auto-hint {
       font-size: 0.8rem;
       color: var(--muted);
       margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    .compare-table {
+      width: 100%;
+      margin-top: 8px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .best-row {
+      background: rgba(34, 197, 94, 0.12);
+    }
+    .best-badge {
+      display: inline-block;
+      background: var(--green);
+      color: #0f1419;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
     }
     .links a {
       color: var(--gold);
@@ -262,36 +283,25 @@
     </div>
 
     <div class="card">
-      <h2><span class="icon">🛒</span> 好市多黃金溢價分析</h2>
+      <h2><span class="icon">🛒</span> 好市多黃金溢價比較</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px">
-        輸入好市多售價與重量，計算相對於國際現貨的溢價，並給出簡易建議。
+        分別輸入 1g / 2.5g / 5g 的好市多售價（TWD），系統會自動計算溢價並告訴你哪個最划算。
       </p>
-      <div class="calc-row">
-        <div>
-          <label>重量</label>
-          <input type="number" id="barWeight" value="5" step="0.1" min="0.1" />
+      <div class="calc-grid">
+        <div class="calc-item">
+          <label>1g 售價 (TWD)</label>
+          <input type="number" id="price1g" placeholder="例如 5500" step="1" min="0" />
         </div>
-        <div>
-          <label>單位</label>
-          <select id="barUnit">
-            <option value="g" selected>公克 (g)</option>
-            <option value="oz">盎司 (oz)</option>
-          </select>
+        <div class="calc-item">
+          <label>2.5g 售價 (TWD)</label>
+          <input type="number" id="price25g" placeholder="例如 13000" step="1" min="0" />
         </div>
-        <div>
-          <label>好市多售價 (USD 或 TWD)</label>
-          <input type="number" id="barPrice" value="" step="1" placeholder="輸入售價" />
+        <div class="calc-item">
+          <label>5g 售價 (TWD)</label>
+          <input type="number" id="price5g" placeholder="例如 24000" step="1" min="0" />
         </div>
-        <div>
-          <label>幣別</label>
-          <select id="barCurrency">
-            <option value="TWD" selected>TWD</option>
-            <option value="USD">USD</option>
-          </select>
-        </div>
-        <button onclick="calcPremium()">計算溢價</button>
       </div>
-      <p class="auto-hint">✨ 輸入變更或金價載入後會自動計算</p>
+      <p class="auto-hint">✨ 輸入任一售價後會自動比較 · 幣別固定 TWD</p>
       <div id="premiumResult"></div>
     </div>
 
@@ -384,7 +394,7 @@
         loading.style.display = 'none';
         content.style.display = 'block';
 
-        calcPremium(true);
+        calcCompare(true);
       } catch (e) {
         loading.textContent = '載入失敗，請稍後再試或檢查網路';
         console.error(e);
@@ -461,72 +471,111 @@
       }
     }
 
-    function calcPremium(silent) {
+    function calcOne(grams, priceTwd, usdOz) {
+      if (!priceTwd || priceTwd <= 0) return null;
+      const meltUsd = (grams / 31.1035) * usdOz;
+      const sellUsd = priceTwd / USD_TWD;
+      const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
+      const premiumAbs = sellUsd - meltUsd;
+      const perGramTwd = priceTwd / grams;
+      return { grams, priceTwd, meltUsd, sellUsd, premium, premiumAbs, perGramTwd };
+    }
+
+    function calcCompare(silent) {
       if (!currentSpot) {
         if (!silent) alert('請先等待金價載入完成');
         return;
       }
-      const weight = parseFloat(document.getElementById('barWeight').value) || 0;
-      const unit = document.getElementById('barUnit').value;
-      const price = parseFloat(document.getElementById('barPrice').value) || 0;
-      const currency = document.getElementById('barCurrency').value;
+      const usdOz = currentSpot.spot_usd_oz || 4070;
+      const items = [
+        calcOne(1, parseFloat(document.getElementById('price1g').value), usdOz),
+        calcOne(2.5, parseFloat(document.getElementById('price25g').value), usdOz),
+        calcOne(5, parseFloat(document.getElementById('price5g').value), usdOz)
+      ].filter(Boolean);
 
-      if (weight <= 0 || price <= 0) {
+      if (items.length === 0) {
         document.getElementById('premiumResult').innerHTML = '';
         return;
       }
 
-      const usdOz = currentSpot.spot_usd_oz || 4070;
-      const grams = unit === 'oz' ? weight * 31.1035 : weight;
-      const meltUsd = (grams / 31.1035) * usdOz;
-      let sellUsd = price;
-      if (currency === 'TWD') sellUsd = price / USD_TWD;
+      // 找溢價最低的
+      let best = items[0];
+      items.forEach(it => {
+        if (it.premium < best.premium) best = it;
+      });
 
-      const premium = ((sellUsd - meltUsd) / meltUsd) * 100;
-      const premiumAbs = sellUsd - meltUsd;
+      let rows = items.map(it => {
+        const isBest = it === best && items.length > 1;
+        let premClass = 'premium-ok';
+        if (it.premium <= 2) premClass = 'premium-good';
+        else if (it.premium > 4) premClass = 'premium-high';
+        return `
+          <tr class="${isBest ? 'best-row' : ''}">
+            <td><strong>${it.grams}g</strong>${isBest ? '<span class="best-badge">最划算</span>' : ''}</td>
+            <td>NT$ ${it.priceTwd.toLocaleString()}</td>
+            <td>NT$ ${Math.round(it.perGramTwd).toLocaleString()}</td>
+            <td class="${premClass}">${it.premium.toFixed(2)}%</td>
+            <td>$${it.premiumAbs.toFixed(2)}</td>
+          </tr>`;
+      }).join('');
 
-      let adviceClass = 'advice-box';
-      let adviceTitle = '建議';
-      let adviceText = '';
-
-      if (premium <= 2) {
-        adviceClass += ' strong-buy';
-        adviceTitle = '✅ 相對划算';
-        adviceText = '溢價約 ' + premium.toFixed(2) + '%，在好市多金條中屬於較低水準。若為長期持有或分散配置，可考慮購買。注意庫存與限購。';
-      } else if (premium <= 4) {
-        adviceClass += '';
-        adviceTitle = '⚖️ 尚可接受';
-        adviceText = '溢價約 ' + premium.toFixed(2) + '%，在合理範圍。可比較其他通路或等補貨再決定。小規格溢價通常較高。';
+      let recommend = '';
+      if (items.length >= 2) {
+        recommend = `
+          <div class="advice-box strong-buy" style="margin-top:14px">
+            <h3>✅ 建議優先買 ${best.grams}g</h3>
+            <p style="font-size:0.95rem">
+              在你輸入的規格中，<strong>${best.grams}g</strong> 的溢價最低（${best.premium.toFixed(2)}%），
+              每公克約 NT$ ${Math.round(best.perGramTwd).toLocaleString()}，相對最划算。
+            </p>
+            <p style="margin-top:6px;font-size:0.85rem;color:var(--muted)">若只想買小規格送禮，可再權衡預算與需求。</p>
+          </div>`;
       } else {
-        adviceClass += ' caution';
-        adviceTitle = '⚠️ 溢價偏高';
-        adviceText = '溢價約 ' + premium.toFixed(2) + '%，相對國際現貨偏貴。建議觀望、比較銀行/金商條塊，或等待好市多降價/補貨。';
+        const it = items[0];
+        let adviceClass = 'advice-box';
+        let title = '⚖️ 尚可接受';
+        let text = '溢價在合理範圍，可比較其他通路。';
+        if (it.premium <= 2) {
+          adviceClass += ' strong-buy';
+          title = '✅ 相對划算';
+          text = '溢價較低，可考慮購買。';
+        } else if (it.premium > 4) {
+          adviceClass += ' caution';
+          title = '⚠️ 溢價偏高';
+          text = '相對國際現貨偏貴，建議觀望或比較其他通路。';
+        }
+        recommend = `
+          <div class="${adviceClass}" style="margin-top:14px">
+            <h3>${title}</h3>
+            <p style="font-size:0.95rem">${it.grams}g 溢價 ${it.premium.toFixed(2)}%。${text}</p>
+          </div>`;
       }
 
       document.getElementById('premiumResult').innerHTML = `
-        <div class="${adviceClass}">
-          <h3>${adviceTitle}</h3>
-          <p style="font-size:0.95rem">
-            現貨熔值約 <strong>$${meltUsd.toFixed(2)}</strong> USD<br>
-            你的買價約 <strong>$${sellUsd.toFixed(2)}</strong> USD<br>
-            溢價金額 <strong>$${premiumAbs.toFixed(2)}</strong> · 溢價率 <strong>${premium.toFixed(2)}%</strong>
-          </p>
-          <p style="margin-top:8px;font-size:0.9rem">${adviceText}</p>
-          <p style="margin-top:8px;font-size:0.8rem;color:var(--muted)">注意：未含稅、運費、會員費；實際轉售會有折價。非投資建議。</p>
-        </div>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>規格</th>
+              <th>售價</th>
+              <th>每公克</th>
+              <th>溢價率</th>
+              <th>溢價金額(USD)</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${recommend}
+        <p style="margin-top:10px;font-size:0.8rem;color:var(--muted)">注意：未含稅、運費、會員費；實際轉售會有折價。非投資建議。</p>
       `;
     }
 
     function scheduleAutoCalc() {
       clearTimeout(calcTimer);
-      calcTimer = setTimeout(() => calcPremium(true), 300);
+      calcTimer = setTimeout(() => calcCompare(true), 300);
     }
 
-    ['barWeight', 'barPrice'].forEach(id => {
+    ['price1g', 'price25g', 'price5g'].forEach(id => {
       document.getElementById(id).addEventListener('input', scheduleAutoCalc);
-    });
-    ['barUnit', 'barCurrency'].forEach(id => {
-      document.getElementById(id).addEventListener('change', scheduleAutoCalc);
     });
 
     document.querySelectorAll('.period-btns button').forEach(btn => {
