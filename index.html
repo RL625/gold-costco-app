@@ -6,7 +6,7 @@
   <title>金脈終端 GoldVein · 黃金與 PAXG 合約分析</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=8"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@e23a4d5/paxg-futures.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/k-analysis.js?v=2"></script>
   <style>
     :root {
@@ -14,7 +14,7 @@
       --text: #e8eef7; --muted: #8b9bb4; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
       background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
@@ -40,8 +40,6 @@
     .period-btns button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 0.85rem; }
     .period-btns button.active, .period-btns button:hover { background: var(--gold); color: #0f1419; border-color: var(--gold); font-weight: 600; }
     .chart-wrap { position: relative; height: clamp(200px, 40vw, 280px); margin-top: 8px; width: 100%; }
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; margin-top: 16px; font-size: 0.85rem; }
-    .stat { text-align: center; } .stat .v { font-weight: 600; color: var(--gold); } .stat .l { color: var(--muted); font-size: 0.75rem; }
     .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.82rem; }
     th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -113,7 +111,7 @@
 
     <div class="card" id="paxgSection">
       <h2>📉 PAXG/USDT 合約開單儀表板 <button class="refresh-btn" onclick="refreshPaxg()">重新整理</button></h2>
-      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">燈號與下方參數同一套計算，並顯示是否適合開單。</p>
+      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">幣安不可用時會自動改用現貨金價計算訊號。</p>
       <div class="period-btns" id="paxgPeriodBtns">
         <button data-days="7">7 天</button>
         <button class="active" data-days="30">30 天</button>
@@ -276,71 +274,38 @@
         document.getElementById('updatedAt').textContent = '更新時間：' + new Date().toLocaleString('zh-TW');
         loading.style.display = 'none'; content.style.display = 'block';
         renderTable();
-      } catch (e) { loading.textContent = '載入失敗'; renderTable(); }
+      } catch (e) {
+        console.error(e);
+        loading.innerHTML = '金價載入失敗，請按重新整理<br><span style="font-size:0.8rem">' + (e.message || e) + '</span>';
+        renderTable();
+      }
     }
 
     async function fallbackDashboard() {
       try {
-        const days = paxgDays || 30;
-        const data = await (await fetch('https://xaus.com/api/v1/history?days=' + days)).json();
+        if (typeof loadPaxgPanel === 'function') {
+          await loadPaxgPanel(paxgDays);
+          return;
+        }
+        const data = await (await fetch('https://xaus.com/api/v1/history?days=' + (paxgDays || 30))).json();
         const pts = data.points || [];
         if (pts.length < 20) throw new Error('資料不足');
         const closes = pts.map(p => p.c);
         const last = closes[closes.length - 1];
-        const sma = (arr, n) => { const s = arr.slice(-n); return s.reduce((a,b)=>a+b,0)/s.length; };
-        const ma20 = sma(closes, 20), ma50 = sma(closes, Math.min(50, closes.length));
-        let gains=0, losses=0;
-        for (let i = closes.length-14; i < closes.length; i++) {
-          const d = closes[i]-closes[i-1];
-          if (d>=0) gains+=d; else losses-=d;
-        }
-        const avgG=gains/14, avgL=losses/14;
-        const lastRsi = avgL===0?100:100-(100/(1+avgG/avgL));
-        let trend='yellow', trendText='盤整';
-        if (last>ma20 && ma20>ma50) { trend='green'; trendText='多頭排列'; }
-        else if (last<ma20 && ma20<ma50) { trend='red'; trendText='空頭排列'; }
-        else if (last>ma20) trendText='站上 MA20'; else trendText='跌破 MA20';
-        let mom='yellow', momText='中性 '+lastRsi.toFixed(0);
-        if (lastRsi>=70) { mom='red'; momText='超買 '+lastRsi.toFixed(0); }
-        else if (lastRsi<=30) { mom='green'; momText='超賣 '+lastRsi.toFixed(0); }
-        else if (lastRsi>=55) { mom='green'; momText='偏多 '+lastRsi.toFixed(0); }
-        else if (lastRsi<=45) { mom='red'; momText='偏空 '+lastRsi.toFixed(0); }
-        let dir='yellow', dirText='觀望', go='wait', goTitle='⏳ 暫時觀望', goSub='多空未明，不建議新開倉。';
-        if (trend==='green' && mom!=='red') {
-          dir='green'; dirText='做多'; go='yes'; goTitle='✅ 適合開多單'; goSub='多頭結構成立，請仍設停損。';
-        } else if (trend==='red' && mom!=='green') {
-          dir='red'; dirText='做空'; go='yes'; goTitle='✅ 適合開空單'; goSub='空頭結構成立，請仍設停損。';
-        }
-        const lc = l => l==='green'?'light-green':(l==='red'?'light-red':'light-yellow');
-        const items = [
-          {lab:'趨勢結構',level:trend,val:trendText},
-          {lab:'動能 RSI',level:mom,val:momText},
-          {lab:'系統方向',level:dir,val:dirText}
-        ];
-        const goClass = go==='yes'?'go-yes':'go-wait';
-        let h = '<div class="go-banner '+goClass+'"><div class="go-title">'+goTitle+'</div><div class="go-sub">'+goSub+'</div></div>';
-        h += '<div class="signal-board">';
-        items.forEach(it => {
-          h += '<div class="signal-cell"><div class="lab">'+it.lab+'</div><div class="light '+lc(it.level)+'"></div><div class="val">'+it.val+'</div></div>';
-        });
-        h += '</div>';
         const dash = document.getElementById('paxgDashboard');
-        if (dash) dash.innerHTML = h;
+        if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 使用現貨備援</div><div class="go-sub">最新約 $' + last.toFixed(1) + '，請再按重新整理載入完整訊號。</div></div>';
         const st = document.getElementById('paxgStatus');
-        if (st) { st.className='status live'; st.textContent='開單訊號 · $'+last.toFixed(1)+' · '+new Date().toLocaleString('zh-TW'); }
-      } catch(e) {
+        if (st) { st.className = 'status live'; st.textContent = '備援模式 · $' + last.toFixed(1); }
+      } catch (e) {
         console.error(e);
         const dash = document.getElementById('paxgDashboard');
-        if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">資料載入失敗</div><div class="go-sub">'+e.message+'</div></div>';
+        if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">資料載入失敗</div><div class="go-sub">' + (e.message || e) + '</div></div>';
       }
     }
 
     function refreshPaxg() {
       if (typeof loadPaxgPanel === 'function') {
-        Promise.resolve(loadPaxgPanel(paxgDays)).then(function() {
-          var dash = document.getElementById('paxgDashboard');
-          if (!dash || !dash.innerHTML.trim()) fallbackDashboard();
-        }).catch(function() { fallbackDashboard(); });
+        Promise.resolve(loadPaxgPanel(paxgDays)).catch(function() { fallbackDashboard(); });
       } else {
         fallbackDashboard();
       }
@@ -357,9 +322,8 @@
 
     loadSpot();
     loadCostco(false);
-    setTimeout(function(){ if (typeof loadKAnalysis === 'function') loadKAnalysis(); }, 500);
-    setTimeout(refreshPaxg, 600);
-    setTimeout(function(){ var d=document.getElementById('paxgDashboard'); if(!d||!d.innerHTML.trim()) fallbackDashboard(); }, 2500);
+    setTimeout(function(){ if (typeof loadKAnalysis === 'function') loadKAnalysis(); }, 400);
+    setTimeout(refreshPaxg, 500);
   </script>
 </body>
 </html>
