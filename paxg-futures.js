@@ -274,9 +274,26 @@
     window.open('https://www.binance.com/zh-TC/futures/PAXGUSDT', '_blank', 'noopener');
   }
 
-  function copyTradeParams(plan) {
-    if (!plan) plan = global.__lastPaxgPlan;
-    if (!plan) { alert('尚無參數可複製'); return; }
+  function copyText(text, okMsg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        alert(okMsg || '已複製');
+      }).catch(function() {
+        prompt('請手動複製', text);
+      });
+    } else {
+      prompt('請手動複製', text);
+    }
+  }
+
+  function copyTradeParams(field) {
+    const plan = global.__lastPaxgPlan;
+    if (!plan) { alert('尚無參數，請先載入儀表板'); return; }
+    if (field === 'entry') return copyText(plan.entry.toFixed(2), '已複製進場價');
+    if (field === 'sl') return copyText(plan.sl.toFixed(2), '已複製停損');
+    if (field === 'tp1') return copyText(plan.tp1.toFixed(2), '已複製停利1');
+    if (field === 'tp2') return copyText(plan.tp2.toFixed(2), '已複製停利2');
+    if (field === 'leverage') return copyText(String(plan.leverage), '已複製槓桿');
     const lines = [
       'PAXGUSDT 參考參數（非自動下單）',
       '方向: ' + plan.direction,
@@ -288,16 +305,7 @@
       '',
       '請至幣安手動填入。網頁無法代你下單。'
     ];
-    const text = lines.join('\n');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function() {
-        alert('已複製開單參數，請到幣安手動填入');
-      }).catch(function() {
-        prompt('請手動複製以下參數', text);
-      });
-    } else {
-      prompt('請手動複製以下參數', text);
-    }
+    copyText(lines.join('\n'), '已複製全部開單參數');
   }
 
   async function loadPaxgPanel(days) {
@@ -348,7 +356,7 @@
 
         html += '<div class="advice-box strong-buy" style="margin-top:12px">' +
           '<h3>幣安 PAXG/USDT 開單參數建議</h3>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。</p>' +
+          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。幣安無法由外部自動下單。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
           '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong></td></tr>' +
@@ -358,11 +366,16 @@
           '<tr><td>停利 2 (TP2)</td><td>$' + plan.tp2.toFixed(2) + '（R:R ' + plan.rr2.toFixed(1) + '）</td></tr>' +
           '<tr><td>建議風險</td><td>單筆約帳戶 ' + plan.riskPct + '%</td></tr>' +
           '</tbody></table></div>' +
-          '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px">' +
-          '<button type="button" class="refresh-btn" style="margin:0;border-color:var(--gold);color:var(--gold);padding:10px 14px;font-weight:700" onclick="openBinancePaxg()">開啟幣安 PAXGUSDT</button>' +
-          '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="copyTradeParams()">複製開單參數</button>' +
+          '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">' +
+          '<button type="button" class="refresh-btn" style="margin:0;border-color:var(--gold);color:var(--gold);padding:10px 14px;font-weight:700" onclick="openBinancePaxg()">① 開啟幣安</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="copyTradeParams()">② 複製全部參數</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'entry\')">進場</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'sl\')">停損</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'tp1\')">停利1</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'tp2\')">停利2</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'leverage\')">槓桿</button>' +
           '</div>' +
-          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">幣安<strong>無法</strong>由外部網頁自動帶入槓桿／進出場。請點「開啟幣安」後手動設定；或先「複製參數」再填入。不會代你下單。</p></div>';
+          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">流程：①開啟幣安 → ②複製參數 → 在幣安手動填入。不會代你下單。</p></div>';
       }
 
       if (body) body.innerHTML = html;
@@ -375,7 +388,7 @@
       if (status) { status.className = 'status fallback'; status.textContent = '載入失敗：' + (e.message || e); }
       if (body) body.innerHTML = '<p class="loading">無法取得資料。' + (e.message || e) + '</p>';
       const dash = document.getElementById('paxgDashboard');
-      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」或檢查網路。</div></div>';
+      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」。</div></div>';
     }
   }
 
