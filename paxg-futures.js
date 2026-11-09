@@ -270,6 +270,36 @@
     el.innerHTML = html;
   }
 
+  function openBinancePaxg() {
+    window.open('https://www.binance.com/zh-TC/futures/PAXGUSDT', '_blank', 'noopener');
+  }
+
+  function copyTradeParams(plan) {
+    if (!plan) plan = global.__lastPaxgPlan;
+    if (!plan) { alert('尚無參數可複製'); return; }
+    const lines = [
+      'PAXGUSDT 參考參數（非自動下單）',
+      '方向: ' + plan.direction,
+      '槓桿: ' + plan.leverage + 'x',
+      '進場: ' + plan.entry.toFixed(2),
+      '停損 SL: ' + plan.sl.toFixed(2),
+      '停利 TP1: ' + plan.tp1.toFixed(2),
+      '停利 TP2: ' + plan.tp2.toFixed(2),
+      '',
+      '請至幣安手動填入。網頁無法代你下單。'
+    ];
+    const text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        alert('已複製開單參數，請到幣安手動填入');
+      }).catch(function() {
+        prompt('請手動複製以下參數', text);
+      });
+    } else {
+      prompt('請手動複製以下參數', text);
+    }
+  }
+
   async function loadPaxgPanel(days) {
     const status = document.getElementById('paxgStatus');
     const body = document.getElementById('paxgBody');
@@ -291,6 +321,7 @@
       const fund = prem ? parseFloat(prem.lastFundingRate) : null;
       const mark = prem ? parseFloat(prem.markPrice) : (ohlc[ohlc.length - 1].c);
       const plan = buildTradePlan(ohlc, fund);
+      global.__lastPaxgPlan = plan;
       const closes = ohlc.map(x => x.c);
       const lastRsi = rsi(closes, 14).slice(-1)[0];
       renderDashboard(buildSignals(plan, fund, lastRsi));
@@ -327,7 +358,11 @@
           '<tr><td>停利 2 (TP2)</td><td>$' + plan.tp2.toFixed(2) + '（R:R ' + plan.rr2.toFixed(1) + '）</td></tr>' +
           '<tr><td>建議風險</td><td>單筆約帳戶 ' + plan.riskPct + '%</td></tr>' +
           '</tbody></table></div>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-top:8px"><a class="buy" href="https://www.binance.com/zh-TC/futures/PAXGUSDT" target="_blank" rel="noopener">幣安 PAXGUSDT 合約 →</a></p></div>';
+          '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px">' +
+          '<button type="button" class="refresh-btn" style="margin:0;border-color:var(--gold);color:var(--gold);padding:10px 14px;font-weight:700" onclick="openBinancePaxg()">開啟幣安 PAXGUSDT</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="copyTradeParams()">複製開單參數</button>' +
+          '</div>' +
+          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">幣安<strong>無法</strong>由外部網頁自動帶入槓桿／進出場。請點「開啟幣安」後手動設定；或先「複製參數」再填入。不會代你下單。</p></div>';
       }
 
       if (body) body.innerHTML = html;
@@ -340,10 +375,12 @@
       if (status) { status.className = 'status fallback'; status.textContent = '載入失敗：' + (e.message || e); }
       if (body) body.innerHTML = '<p class="loading">無法取得資料。' + (e.message || e) + '</p>';
       const dash = document.getElementById('paxgDashboard');
-      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」或檢查網路。若在限制地區，系統會改用現貨備援。</div></div>';
+      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」或檢查網路。</div></div>';
     }
   }
 
   global.loadPaxgPanel = loadPaxgPanel;
   global.renderPaxgCandle = renderCandle;
+  global.openBinancePaxg = openBinancePaxg;
+  global.copyTradeParams = copyTradeParams;
 })(window);
