@@ -171,6 +171,7 @@
         <button data-days="90">90 天</button>
         <button data-days="180">半年</button>
         <button data-days="365">1 年</button>
+        <button data-days="2000">全部</button>
       </div>
       <div class="chart-wrap"><canvas id="goldChart"></canvas></div>
       <div class="stats-row" id="chartStats"></div>
@@ -232,7 +233,7 @@
     let chart = null;
     let currentSpot = null;
     let costcoProducts = [];
-    let periodAvgs = { d7: null, d30: null, d90: null };
+    let periodAvgs = { d7: null, d30: null, d90: null, d180: null, d365: null };
 
     const FALLBACK_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
@@ -394,7 +395,9 @@
         { key: 'now', label: '目前金價', usd: usdOz },
         { key: 'd7', label: '近 7 日均價', usd: periodAvgs.d7 },
         { key: 'd30', label: '近 30 日均價', usd: periodAvgs.d30 },
-        { key: 'd90', label: '近 90 日均價', usd: periodAvgs.d90 }
+        { key: 'd90', label: '近 90 日均價', usd: periodAvgs.d90 },
+        { key: 'd180', label: '近半年均價', usd: periodAvgs.d180 },
+        { key: 'd365', label: '近一年均價', usd: periodAvgs.d365 }
       ];
       periods.forEach(per => {
         if (!per.usd) {
@@ -476,7 +479,7 @@
             datasets: [{
               label: '金價 (USD/oz)', data: closes, borderColor: '#f5c518',
               backgroundColor: 'rgba(245, 197, 24, 0.15)', fill: true, tension: 0.3,
-              pointRadius: days > 90 ? 0 : 2, borderWidth: 2
+              pointRadius: days > 90 ? 0 : 2, borderWidth: days > 365 ? 1.5 : 2
             }]
           },
           options: {
@@ -507,12 +510,14 @@
 
     async function loadPeriodAvgs() {
       try {
-        const res = await fetch('https://xaus.com/api/v1/history?days=90');
+        const res = await fetch('https://xaus.com/api/v1/history?days=365');
         const data = await res.json();
         const points = data.points || [];
         periodAvgs.d7 = avgClose(points, 7);
         periodAvgs.d30 = avgClose(points, 30);
         periodAvgs.d90 = avgClose(points, 90);
+        periodAvgs.d180 = avgClose(points, 180);
+        periodAvgs.d365 = avgClose(points, 365);
         renderTable();
       } catch (e) {
         console.error(e);
