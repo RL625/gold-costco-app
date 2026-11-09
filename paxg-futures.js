@@ -50,14 +50,10 @@
     const key = String(days);
     const interval = INTERVAL_MAP[key] || '1d';
     const limit = LIMIT_MAP[key] || 90;
-    const url = FAPI + '/fapi/v1/klines?symbol=PAXGUSDT&interval=' + interval + '&limit=' + limit;
-    const res = await fetch(url);
+    const res = await fetch(FAPI + '/fapi/v1/klines?symbol=PAXGUSDT&interval=' + interval + '&limit=' + limit);
     if (!res.ok) throw new Error('Binance API ' + res.status);
     const raw = await res.json();
-    return raw.map(k => ({
-      t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5],
-      time: Math.floor(k[0] / 1000)
-    }));
+    return raw.map(k => ({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5], time: Math.floor(k[0] / 1000) }));
   }
 
   async function fetchPremium() {
@@ -85,8 +81,7 @@
     const lastMa20 = ma20[ma20.length - 1];
     const lastMa50 = ma50[ma50.length - 1];
 
-    let bias = '中性', direction = '觀望';
-    let score = 0;
+    let bias = '中性', direction = '觀望', score = 0;
     if (last > lastMa20) score += 1;
     if (last > lastMa50) score += 1;
     if (lastMa20 > lastMa50) score += 1;
@@ -104,17 +99,11 @@
 
     let entry = last, sl, tp1, tp2;
     if (direction.indexOf('做多') >= 0) {
-      sl = last - 1.5 * lastAtr;
-      tp1 = last + 2 * lastAtr;
-      tp2 = last + 3.5 * lastAtr;
+      sl = last - 1.5 * lastAtr; tp1 = last + 2 * lastAtr; tp2 = last + 3.5 * lastAtr;
     } else if (direction.indexOf('做空') >= 0) {
-      sl = last + 1.5 * lastAtr;
-      tp1 = last - 2 * lastAtr;
-      tp2 = last - 3.5 * lastAtr;
+      sl = last + 1.5 * lastAtr; tp1 = last - 2 * lastAtr; tp2 = last - 3.5 * lastAtr;
     } else {
-      sl = last - 1.2 * lastAtr;
-      tp1 = last + 1.5 * lastAtr;
-      tp2 = last + 2.5 * lastAtr;
+      sl = last - 1.2 * lastAtr; tp1 = last + 1.5 * lastAtr; tp2 = last + 2.5 * lastAtr;
     }
 
     const risk = Math.abs(entry - sl);
@@ -147,8 +136,7 @@
     try {
       const ohlc = await fetchKlines(days);
       const chart = LightweightCharts.createChart(el, {
-        width: el.clientWidth,
-        height: el.clientHeight || 280,
+        width: el.clientWidth, height: el.clientHeight || 280,
         layout: { background: { color: '#1a2332' }, textColor: '#8b9bb4' },
         grid: { vertLines: { color: 'rgba(45,58,79,0.5)' }, horzLines: { color: 'rgba(45,58,79,0.5)' } },
         rightPriceScale: { borderColor: '#2d3a4f' },
@@ -166,15 +154,107 @@
       maLine.setData(ohlc.map((x, i) => ma20[i] != null ? { time: x.time, value: ma20[i] } : null).filter(Boolean));
       chart.timeScale().fitContent();
       candleChart = chart;
-      window.addEventListener('resize', () => {
-        if (candleChart && el) candleChart.applyOptions({ width: el.clientWidth });
-      });
+      window.addEventListener('resize', () => { if (candleChart && el) candleChart.applyOptions({ width: el.clientWidth }); });
       return ohlc;
     } catch (e) {
       console.error(e);
-      el.innerHTML = '<p class="loading">無法載入幣安 K 線（可能地區限制）。' + (e.message || '') + '</p>';
+      el.innerHTML = '<p class="loading">無法載入幣安 K 線。' + (e.message || '') + '</p>';
       return null;
     }
+  }
+
+  function lightClass(level) {
+    if (level === 'green') return 'light-green';
+    if (level === 'yellow') return 'light-yellow';
+    return 'light-red';
+  }
+
+  function buildSignals(plan, fund, lastRsi) {
+    if (!plan) return null;
+    let trend = 'yellow', trendText = '盤整';
+    if (plan.last > plan.ma20 && plan.ma20 > plan.ma50) { trend = 'green'; trendText = '多頭排列'; }
+    else if (plan.last < plan.ma20 && plan.ma20 < plan.ma50) { trend = 'red'; trendText = '空頭排列'; }
+    else if (plan.last > plan.ma20) { trend = 'yellow'; trendText = '站上 MA20'; }
+    else { trend = 'yellow'; trendText = '跌破 MA20'; }
+
+    let mom = 'yellow', momText = '中性';
+    if (lastRsi != null) {
+      if (lastRsi >= 70) { mom = 'red'; momText = '超買 ' + lastRsi.toFixed(0); }
+      else if (lastRsi <= 30) { mom = 'green'; momText = '超賣 ' + lastRsi.toFixed(0); }
+      else if (lastRsi >= 55) { mom = 'green'; momText = '偏多 ' + lastRsi.toFixed(0); }
+      else if (lastRsi <= 45) { mom = 'red'; momText = '偏空 ' + lastRsi.toFixed(0); }
+      else { mom = 'yellow'; momText = '中性 ' + lastRsi.toFixed(0); }
+    }
+
+    const atrPct = plan.lastAtr / plan.last * 100;
+    let vol = 'yellow', volText = atrPct.toFixed(2) + '%';
+    if (atrPct < 0.8) { vol = 'green'; volText = '偏低 ' + atrPct.toFixed(2) + '%'; }
+    else if (atrPct > 2.0) { vol = 'red'; volText = '偏高 ' + atrPct.toFixed(2) + '%'; }
+    else { vol = 'yellow'; volText = '正常 ' + atrPct.toFixed(2) + '%'; }
+
+    let fundL = 'yellow', fundText = '—';
+    if (fund != null) {
+      const fp = fund * 100;
+      fundText = fp.toFixed(4) + '%';
+      if (Math.abs(fp) < 0.005) { fundL = 'green'; fundText = '中性 ' + fundText; }
+      else if (fp > 0.01) { fundL = 'red'; fundText = '多付費 ' + fundText; }
+      else if (fp < -0.01) { fundL = 'green'; fundText = '空付費 ' + fundText; }
+    }
+
+    let dir = 'yellow', dirText = plan.direction;
+    if (plan.direction.indexOf('做多') >= 0) dir = 'green';
+    else if (plan.direction.indexOf('做空') >= 0) dir = 'red';
+    else dirText = '觀望';
+
+    let go = 'wait', goTitle = '⏳ 暫時觀望', goSub = '訊號分歧或條件不足，不建議立刻開單。';
+
+    if (plan.direction.indexOf('做多') >= 0) {
+      if (trend === 'green' && mom !== 'red' && vol !== 'red' && lastRsi < 70) {
+        go = 'yes'; goTitle = '✅ 適合開多單'; goSub = '多頭結構成立，動能未超買，可考慮多單並設停損。';
+      } else if (trend === 'green' && mom === 'red') {
+        go = 'wait'; goTitle = '⚠️ 多頭但動能超買'; goSub = '趨勢向上但 RSI 偏高，等回檔再多較佳。';
+      }
+    } else if (plan.direction.indexOf('做空') >= 0) {
+      if (trend === 'red' && mom !== 'green' && vol !== 'red') {
+        go = 'yes'; goTitle = '✅ 適合開空單'; goSub = '空頭結構成立，動能未轉多，可考慮空單並設停損。';
+      } else if (trend === 'red' && mom === 'green') {
+        go = 'wait'; goTitle = '⚠️ 空頭但動能背離'; goSub = '價格偏空但 RSI 偏多，等動能轉弱再空較穩。';
+      }
+    } else {
+      go = 'wait'; goTitle = '⏳ 暫時觀望'; goSub = '多空未明，不建議新開倉。';
+    }
+
+    if (vol === 'red' && (lastRsi > 75 || lastRsi < 25)) {
+      go = 'no'; goTitle = '🚫 不適合開單'; goSub = '波動過大且動能極端，追價風險高。';
+    }
+
+    return {
+      items: [
+        { lab: '趨勢結構', level: trend, val: trendText },
+        { lab: '動能 RSI', level: mom, val: momText },
+        { lab: '波動 ATR', level: vol, val: volText },
+        { lab: '資金費率', level: fundL, val: fundText },
+        { lab: '系統方向', level: dir, val: dirText }
+      ],
+      go, goTitle, goSub
+    };
+  }
+
+  function renderDashboard(signals) {
+    const el = document.getElementById('paxgDashboard');
+    if (!el || !signals) { if (el) el.innerHTML = ''; return; }
+    const goClass = signals.go === 'yes' ? 'go-yes' : (signals.go === 'no' ? 'go-no' : 'go-wait');
+    let html = '<div class="go-banner ' + goClass + '">' +
+      '<div class="go-title">' + signals.goTitle + '</div>' +
+      '<div class="go-sub">' + signals.goSub + '</div></div>';
+    html += '<div class="signal-board">';
+    signals.items.forEach(it => {
+      html += '<div class="signal-cell"><div class="lab">' + it.lab + '</div>' +
+        '<div class="light ' + lightClass(it.level) + '"></div>' +
+        '<div class="val">' + it.val + '</div></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
   }
 
   async function loadPaxgPanel(days) {
@@ -193,6 +273,8 @@
       const plan = buildTradePlan(ohlc, fund);
       const closes = ohlc.map(x => x.c);
       const lastRsi = rsi(closes, 14).slice(-1)[0];
+      const signals = buildSignals(plan, fund, lastRsi);
+      renderDashboard(signals);
 
       let html = '';
       if (ticker) {
@@ -216,19 +298,17 @@
 
         html += '<div class="advice-box strong-buy" style="margin-top:12px">' +
           '<h3>幣安 PAXG/USDT 合約開單參數建議</h3>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。請依自身風險調整。</p>' +
+          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
-          '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong>（依波動調整，偏保守）</td></tr>' +
+          '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong></td></tr>' +
           '<tr><td>參考進場</td><td>$' + plan.entry.toFixed(2) + '</td></tr>' +
-          '<tr><td>停損 (SL)</td><td>$' + plan.sl.toFixed(2) + '（約 1.5×ATR）</td></tr>' +
-          '<tr><td>停利 1 (TP1)</td><td>$' + plan.tp1.toFixed(2) + '（約 2×ATR，R:R ' + plan.rr1.toFixed(1) + '）</td></tr>' +
-          '<tr><td>停利 2 (TP2)</td><td>$' + plan.tp2.toFixed(2) + '（約 3.5×ATR，R:R ' + plan.rr2.toFixed(1) + '）</td></tr>' +
-          '<tr><td>建議風險</td><td>單筆約帳戶 ' + plan.riskPct + '%（依 SL 距離反推倉位）</td></tr>' +
+          '<tr><td>停損 (SL)</td><td>$' + plan.sl.toFixed(2) + '</td></tr>' +
+          '<tr><td>停利 1 (TP1)</td><td>$' + plan.tp1.toFixed(2) + '（R:R ' + plan.rr1.toFixed(1) + '）</td></tr>' +
+          '<tr><td>停利 2 (TP2)</td><td>$' + plan.tp2.toFixed(2) + '（R:R ' + plan.rr2.toFixed(1) + '）</td></tr>' +
+          '<tr><td>建議風險</td><td>單筆約帳戶 ' + plan.riskPct + '%</td></tr>' +
           '</tbody></table></div>' +
-          '<p style="font-size:0.8rem;margin-top:10px">倉位粗估：若帳戶權益 E、願意虧損 ' + plan.riskPct + '%，則依風險距離與槓桿反推；實際以幣安保證金與強平價為準。</p>' +
-          '<p style="font-size:0.8rem;color:var(--muted)">連結：<a class="buy" href="https://www.binance.com/zh-TC/futures/PAXGUSDT" target="_blank" rel="noopener">幣安 PAXGUSDT 合約</a></p>' +
-          '</div>';
+          '<p style="font-size:0.8rem;color:var(--muted);margin-top:8px"><a class="buy" href="https://www.binance.com/zh-TC/futures/PAXGUSDT" target="_blank" rel="noopener">幣安 PAXGUSDT 合約 →</a></p></div>';
       }
 
       if (body) body.innerHTML = html;
@@ -238,11 +318,10 @@
       }
     } catch (e) {
       console.error(e);
-      if (status) {
-        status.className = 'status fallback';
-        status.textContent = '幣安 API 無法連線（地區限制或網路）。可稍後再試。';
-      }
+      if (status) { status.className = 'status fallback'; status.textContent = '幣安 API 無法連線。'; }
       if (body) body.innerHTML = '<p class="loading">無法取得 PAXGUSDT。' + (e.message || e) + '</p>';
+      const dash = document.getElementById('paxgDashboard');
+      if (dash) dash.innerHTML = '';
     }
   }
 
