@@ -163,7 +163,7 @@
     <div class="card">
       <h2>🛒 好市多黃金 · 溢價比較</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">
-        依目前國際金價與回饋自動計算溢價。好市多售價為手動更新參考。
+        依目前國際金價與回饋自動計算溢價。列表：有貨優先。
       </p>
 
       <div class="calc-bar">
@@ -177,7 +177,7 @@
         </div>
       </div>
 
-      <p id="costcoStatus" class="status">好市多資料更新：2026/11/09</p>
+      <p id="costcoStatus" class="status">好市多資料更新：2026/11/09 · 排序：有貨優先</p>
 
       <div style="overflow-x:auto">
         <table>
@@ -225,20 +225,20 @@
     let chart = null;
     let currentSpot = null;
 
-    // 好市多貴金屬（2026/11/09 更新）
+    // 好市多貴金屬（2026/11/09）— 渲染時會再依有貨優先排序
     const COSTCO_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
-      { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600' },
       { name: 'PAMP 美國白鷹', grams: 5, price: 23789, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877' },
-      { name: 'PAMP 財富女神', grams: 5, price: 23649, stock: false,
-        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-5-g/p/155641' },
       { name: 'PAMP 幸運草', grams: 5, price: 24269, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Lucky-Clover-Gold-Ingot-5-g/p/159852' },
       { name: 'PAMP Fender 吉他撥片幣', grams: 5, price: 27069, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fender-75th-Anniversary-Gold-Guitar-Pick-Coin-9999-Fine-Gold-5g/p/163768' },
+      { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600' },
+      { name: 'PAMP 財富女神', grams: 5, price: 23649, stock: false,
+        url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-5-g/p/155641' },
       { name: 'PAMP 財富女神', grams: 10, price: null, stock: false,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-10-g/p/146044' },
       { name: 'PAMP 財富女神', grams: 20, price: null, stock: false,
@@ -258,7 +258,11 @@
     }
 
     function renderTable() {
-      const list = COSTCO_PRODUCTS;
+      // 有貨優先，同組再依重量由小到大
+      const list = COSTCO_PRODUCTS.slice().sort((a, b) => {
+        if (!!a.stock !== !!b.stock) return a.stock ? -1 : 1;
+        return (a.grams || 0) - (b.grams || 0);
+      });
       const usdOz = currentSpot ? (currentSpot.spot_usd_oz || 4070) : 4070;
       const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
       const computed = list.map(p => calcItem(p, usdOz, rewardPct));
