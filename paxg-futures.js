@@ -94,7 +94,6 @@
     const lastMa20 = ma20[ma20.length - 1];
     const lastMa50 = ma50[ma50.length - 1];
 
-    // 結構優先：均線排列決定主方向，RSI 只做加減分，避免與燈號打架
     let bias = '中性', direction = '觀望', score = 0;
     const bullStruct = last > lastMa20 && lastMa20 > lastMa50;
     const bearStruct = last < lastMa20 && lastMa20 < lastMa50;
@@ -223,7 +222,6 @@
     else if (plan.direction.indexOf('做空') >= 0) dir = 'red';
     else dirText = '觀望';
 
-    // 方向唯一來源：plan.direction（與參數表同一套 buildTradePlan）
     let go = 'wait', goTitle = '⏳ 暫時觀望', goSub = '訊號不足，不建議立刻開單。';
 
     if (plan.direction.indexOf('做多') >= 0) {
@@ -283,48 +281,32 @@
     return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
   }
 
+  const BINANCE_FUTURES_URL = 'https://www.binance.com/zh-TC/futures/PAXGUSDT';
+  const BINANCE_APP_HOME = 'bnc://app.binance.com';
+
   function openBinanceWeb() {
-    window.open('https://www.binance.com/zh-TC/futures/PAXGUSDT', '_blank', 'noopener');
+    window.open(BINANCE_FUTURES_URL, '_blank', 'noopener');
   }
 
   function openBinancePaxg(preferApp) {
-    const appSchemes = [
-      'bnc://app.binance.com/futures/PAXGUSDT',
-      'bnc://app.binance.com/trade?pair=PAXGUSDT&type=futures',
-      'bnc://app.binance.com'
-    ];
+    // 優先 https 合約頁；勿用 bnc://.../futures/...（會「連結異常」）
     preferApp = preferApp !== false && isMobile();
     if (!preferApp) {
       openBinanceWeb();
       return;
     }
-    let done = false;
-    const fallback = function() {
-      if (done) return;
-      done = true;
-      openBinanceWeb();
-    };
-    const t = setTimeout(fallback, 1600);
-    const onHide = function() {
-      if (document.hidden) {
-        done = true;
-        clearTimeout(t);
-        document.removeEventListener('visibilitychange', onHide);
-      }
-    };
-    document.addEventListener('visibilitychange', onHide);
     try {
-      const a = document.createElement('a');
-      a.setAttribute('href', appSchemes[0]);
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() { try { a.remove(); } catch (e) {} }, 300);
-      setTimeout(function() {
-        if (!done) window.location.href = appSchemes[1];
-      }, 350);
+      window.location.href = BINANCE_FUTURES_URL;
     } catch (e) {
-      fallback();
+      openBinanceWeb();
+    }
+  }
+
+  function openBinanceAppHome() {
+    try {
+      window.location.href = BINANCE_APP_HOME;
+    } catch (e) {
+      openBinanceWeb();
     }
   }
 
@@ -431,8 +413,9 @@
           '<tr><td>建議風險</td><td>單筆約帳戶 ' + plan.riskPct + '%</td></tr>' +
           '</tbody></table></div>' +
           '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">' +
-          '<button type="button" class="refresh-btn" style="margin:0;border-color:var(--gold);color:var(--gold);padding:10px 14px;font-weight:700" onclick="openBinancePaxg(true)">① 開啟幣安 App</button>' +
-          '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="openBinanceWeb()">網頁版</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;border-color:var(--gold);color:var(--gold);padding:10px 14px;font-weight:700" onclick="openBinancePaxg(true)">① 開啟幣安合約頁</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="openBinanceWeb()">網頁版（新分頁）</button>' +
+          '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="openBinanceAppHome()">只開 App</button>' +
           '<button type="button" class="refresh-btn" style="margin:0;padding:10px 14px" onclick="copyTradeParams()">② 複製全部參數</button>' +
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'entry\')">進場</button>' +
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'sl\')">停損</button>' +
@@ -440,7 +423,7 @@
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'tp2\')">停利2</button>' +
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'leverage\')">槓桿</button>' +
           '</div>' +
-          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">手機可試 App；失敗則開網頁。參數需手動填入。</p></div>';
+          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">請用「開啟幣安合約頁」。錯誤深鏈會顯示連結異常。參數需在 App 內搜尋 PAXGUSDT 並手動填入。</p></div>';
       }
 
       if (body) body.innerHTML = html;
@@ -461,5 +444,6 @@
   global.renderPaxgCandle = renderCandle;
   global.openBinancePaxg = openBinancePaxg;
   global.openBinanceWeb = openBinanceWeb;
+  global.openBinanceAppHome = openBinanceAppHome;
   global.copyTradeParams = copyTradeParams;
 })(window);
