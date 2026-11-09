@@ -6,7 +6,7 @@
   <title>金脈終端 GoldVein · 黃金與 PAXG 合約分析</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=5"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=7"></script>
   <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/k-analysis.js?v=2"></script>
   <style>
     :root {
@@ -94,15 +94,12 @@
   <div class="container">
     <header>
       <h1>🪙 金脈終端 GoldVein</h1>
-      <p>合約開單訊號優先 · 現貨金價 · 好市多溢價</p>
+      <p>合約開單訊號 · 現貨金價 · 好市多溢價</p>
     </header>
 
     <div class="card" style="border-color:rgba(245,197,24,0.5);background:rgba(245,197,24,0.1)">
-      <p style="margin:0;text-align:center;font-size:0.95rem">
-        <strong>金脈終端 GoldVein</strong><br>
-        <a href="#paxgSection" style="color:var(--gold);font-size:1.05rem;font-weight:700">↓ 合約開單儀表板（本頁最上方優先）</a>
-      </p>
-      <div id="topGoBanner" style="margin-top:12px"></div>
+      <p style="margin:0 0 8px;text-align:center;font-size:0.9rem;color:var(--muted)">開單結論（與下方儀表板同步）</p>
+      <div id="topGoBanner"><p class="loading" style="padding:8px">載入訊號中…</p></div>
     </div>
 
     <div class="card" id="paxgSection">
