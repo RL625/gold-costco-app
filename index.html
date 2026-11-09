@@ -6,7 +6,7 @@
   <title>金脈終端 GoldVein · 黃金與 PAXG 合約分析</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=4"></script>
   <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/k-analysis.js?v=2"></script>
   <style>
     :root {
@@ -176,7 +176,6 @@
     const USD_TWD = 32.85;
     const WORKER_URL = 'https://workers-playground-orange-mountain-73c1.aid-grab9x.workers.dev';
     let chart = null, currentSpot = null, costcoProducts = [];
-    let periodAvgs = { d7: null, d30: null, d90: null, d180: null, d365: null };
     let paxgDays = 30;
 
     const FALLBACK_PRODUCTS = [
