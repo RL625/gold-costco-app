@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>金價查詢 & 好市多黃金建議</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@7bba913/index.html"></script>
 </head>
 <body>
-<p>載入中，完整版請稍候...</p>
-<script>location.replace('https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@7bba913/index.html?v=k1');</script>
+<script>
+// 暫時：直接導向最後一個完整可用 commit，下一版會合併 K 線分析
+fetch('https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@7bba913ccbb3fd44a569fc8c9cca489f93d18222/index.html')
+  .then(r => r.text())
+  .then(html => { document.open(); document.write(html); document.close(); })
+  .catch(() => { document.body.innerHTML = '<p style="color:#fff;padding:20px">請開啟：<a href="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@7bba913ccbb3fd44a569fc8c9cca489f93d18222/index.html" style="color:#f5c518">完整版連結</a></p>'; });
+</script>
 </body>
 </html>
