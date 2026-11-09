@@ -224,7 +224,7 @@
       go = 'wait'; goTitle = '⏳ 暫時觀望'; goSub = '多空未明，不建議新開倉。';
     }
 
-    if (vol === 'red' && (lastRsi > 75 || lastRsi < 25)) {
+    if (vol === 'red' && lastRsi != null && (lastRsi > 75 || lastRsi < 25)) {
       go = 'no'; goTitle = '🚫 不適合開單'; goSub = '波動過大且動能極端，追價風險高。';
     }
 
@@ -273,8 +273,7 @@
       const plan = buildTradePlan(ohlc, fund);
       const closes = ohlc.map(x => x.c);
       const lastRsi = rsi(closes, 14).slice(-1)[0];
-      const signals = buildSignals(plan, fund, lastRsi);
-      renderDashboard(signals);
+      renderDashboard(buildSignals(plan, fund, lastRsi));
 
       let html = '';
       if (ticker) {
