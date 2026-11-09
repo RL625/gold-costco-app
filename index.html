@@ -81,16 +81,10 @@
       display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 14px;
     }
     .calc-bar label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-    .calc-bar select, .calc-bar input {
+    .calc-bar select {
       background: var(--bg); border: 1px solid var(--border); color: var(--text);
       padding: 10px 12px; border-radius: 8px; font-size: 0.95rem;
     }
-    .calc-bar input { min-width: 220px; }
-    .btn {
-      background: rgba(245,197,24,0.15); border: 1px solid var(--gold); color: var(--gold);
-      padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
-    }
-    .btn:hover { background: var(--gold); color: #0f1419; }
     .links a { color: var(--gold); text-decoration: none; margin-right: 16px; font-size: 0.9rem; }
     .links a:hover { text-decoration: underline; }
     .disclaimer {
@@ -106,8 +100,6 @@
     a.buy { color: var(--gold); text-decoration: none; }
     a.buy:hover { text-decoration: underline; }
     .status { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
-    .status.live { color: var(--green); }
-    .status.fallback { color: var(--gold); }
     @media (max-width: 600px) {
       .price-box .value { font-size: 1.2rem; }
       .chart-wrap { height: 220px; }
@@ -169,11 +161,9 @@
     </div>
 
     <div class="card">
-      <h2>🛒 好市多黃金 · 溢價比較
-        <button class="refresh-btn" onclick="loadCostco(true)">更新好市多</button>
-      </h2>
+      <h2>🛒 好市多黃金 · 溢價比較</h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">
-        部署 Cloudflare Worker 後可即時抓取；未設定則使用內建備援資料。
+        依目前國際金價與回饋自動計算溢價。好市多售價為手動更新參考。
       </p>
 
       <div class="calc-bar">
@@ -185,14 +175,9 @@
             <option value="3" selected>線上 3%（好多金）</option>
           </select>
         </div>
-        <div style="flex:1;min-width:200px">
-          <label>Worker 網址（可選）</label>
-          <input type="url" id="workerUrl" placeholder="https://你的-worker.workers.dev" />
-        </div>
-        <button class="btn" onclick="saveWorkerUrl()">儲存</button>
       </div>
 
-      <p id="costcoStatus" class="status">讀取中...</p>
+      <p id="costcoStatus" class="status">好市多資料更新：2026/11/09</p>
 
       <div style="overflow-x:auto">
         <table>
@@ -216,7 +201,6 @@
 
       <div class="links" style="margin-top:14px">
         <a href="https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/c/111001" target="_blank" rel="noopener">開啟好市多分類頁 →</a>
-        <a href="https://github.com/RL625/gold-costco-app/blob/main/worker.js" target="_blank" rel="noopener">Worker 程式碼 →</a>
       </div>
 
       <div class="advice-box" style="margin-top:16px">
@@ -231,7 +215,7 @@
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考。金價來自公開 API；好市多經 Worker 代理或備援資料，實際以官網為準。<br>
+      本工具僅供資訊參考。金價來自公開 API；好市多價格為手動更新，實際以官網為準。<br>
       非投資建議。購買黃金有市場風險，請自行評估。
     </div>
   </div>
@@ -240,13 +224,12 @@
     const USD_TWD = 32.85;
     let chart = null;
     let currentSpot = null;
-    let costcoProducts = [];
 
-    // 備援資料（Worker 失敗時使用）
-    const FALLBACK_PRODUCTS = [
+    // 好市多貴金屬（2026/11/09 更新）
+    const COSTCO_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
-      { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: true,
+      { name: 'PAMP 財富女神', grams: 2.5, price: 11889, stock: false,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-Fortuna-Gold-Rectangular-Ingot-25-g/p/155600' },
       { name: 'PAMP 美國白鷹', grams: 5, price: 23789, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/PAMP-America-Bald-Eagle-Gold-Rectangular-Ingot-5-g/p/163877' },
@@ -264,56 +247,6 @@
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793' }
     ];
 
-    function getWorkerUrl() {
-      return (localStorage.getItem('costcoWorkerUrl') || document.getElementById('workerUrl').value || '').trim();
-    }
-
-    function saveWorkerUrl() {
-      const url = document.getElementById('workerUrl').value.trim();
-      if (url) localStorage.setItem('costcoWorkerUrl', url);
-      else localStorage.removeItem('costcoWorkerUrl');
-      loadCostco(true);
-    }
-
-    async function loadCostco(force) {
-      const status = document.getElementById('costcoStatus');
-      const workerUrl = getWorkerUrl();
-      document.getElementById('workerUrl').value = workerUrl;
-
-      if (!workerUrl) {
-        costcoProducts = FALLBACK_PRODUCTS.slice();
-        status.className = 'status fallback';
-        status.textContent = '使用內建備援資料（尚未設定 Worker）。部署 worker.js 後填入網址即可即時更新。';
-        renderTable();
-        return;
-      }
-
-      status.className = 'status';
-      status.textContent = '正在從 Worker 抓取好市多最新售價...';
-      try {
-        const res = await fetch(workerUrl + (force ? ('?t=' + Date.now()) : ''), { cache: 'no-store' });
-        const data = await res.json();
-        if (!data.ok || !Array.isArray(data.products)) throw new Error(data.error || '格式錯誤');
-        costcoProducts = data.products.map(p => ({
-          name: p.name,
-          grams: p.grams,
-          price: p.price,
-          stock: !!p.stock,
-          url: p.url
-        }));
-        status.className = 'status live';
-        status.textContent = '即時資料 · ' + (data.count || costcoProducts.length) + ' 筆 · 更新於 ' +
-          (data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-TW') : new Date().toLocaleString('zh-TW'));
-        renderTable();
-      } catch (e) {
-        console.error(e);
-        costcoProducts = FALLBACK_PRODUCTS.slice();
-        status.className = 'status fallback';
-        status.textContent = 'Worker 讀取失敗，改用備援資料。' + (e.message ? ' (' + e.message + ')' : '');
-        renderTable();
-      }
-    }
-
     function calcItem(p, usdOz, rewardPct) {
       if (p.price == null || p.price <= 0 || !p.grams) return null;
       const meltUsd = (p.grams / 31.1035) * usdOz;
@@ -325,7 +258,7 @@
     }
 
     function renderTable() {
-      const list = costcoProducts.length ? costcoProducts : FALLBACK_PRODUCTS;
+      const list = COSTCO_PRODUCTS;
       const usdOz = currentSpot ? (currentSpot.spot_usd_oz || 4070) : 4070;
       const rewardPct = parseFloat(document.getElementById('rewardRate').value) || 0;
       const computed = list.map(p => calcItem(p, usdOz, rewardPct));
@@ -409,7 +342,7 @@
 
     async function loadHistory(days) {
       try {
-        const res = await fetch(`https://xaus.com/api/v1/history?days=${days}`);
+        const res = await fetch('https://xaus.com/api/v1/history?days=' + days);
         const data = await res.json();
         const points = data.points || [];
         const labels = points.map(p => p.d);
@@ -439,11 +372,12 @@
           const first = closes[0], last = closes[closes.length - 1];
           const change = last - first, pct = (change / first * 100).toFixed(2);
           const high = Math.max(...closes), low = Math.min(...closes);
-          document.getElementById('chartStats').innerHTML = `
-            <div class="stat"><div class="v">$${last.toFixed(1)}</div><div class="l">最新收盤</div></div>
-            <div class="stat"><div class="v ${change >= 0 ? 'change-up' : 'change-down'}">${change >= 0 ? '+' : ''}${pct}%</div><div class="l">期間漲跌</div></div>
-            <div class="stat"><div class="v">$${high.toFixed(1)}</div><div class="l">期間最高</div></div>
-            <div class="stat"><div class="v">$${low.toFixed(1)}</div><div class="l">期間最低</div></div>`;
+          document.getElementById('chartStats').innerHTML =
+            '<div class="stat"><div class="v">$' + last.toFixed(1) + '</div><div class="l">最新收盤</div></div>' +
+            '<div class="stat"><div class="v ' + (change >= 0 ? 'change-up' : 'change-down') + '">' +
+            (change >= 0 ? '+' : '') + pct + '%</div><div class="l">期間漲跌</div></div>' +
+            '<div class="stat"><div class="v">$' + high.toFixed(1) + '</div><div class="l">期間最高</div></div>' +
+            '<div class="stat"><div class="v">$' + low.toFixed(1) + '</div><div class="l">期間最低</div></div>';
         }
       } catch (e) {
         console.error(e);
@@ -460,11 +394,9 @@
       });
     });
 
-    const saved = localStorage.getItem('costcoWorkerUrl') || '';
-    document.getElementById('workerUrl').value = saved;
     loadSpot();
     loadHistory(7);
-    loadCostco(false);
+    renderTable();
   </script>
 </body>
 </html>
