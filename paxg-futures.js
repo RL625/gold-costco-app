@@ -279,7 +279,6 @@
   }
 
   function openBinancePaxg(preferApp) {
-    const webUrl = 'https://www.binance.com/zh-TC/futures/PAXGUSDT';
     const appSchemes = [
       'bnc://app.binance.com/futures/PAXGUSDT',
       'bnc://app.binance.com/trade?pair=PAXGUSDT&type=futures',
@@ -394,15 +393,16 @@
       if (plan) {
         html += '<div class="advice-box" style="margin-top:8px">' +
           '<h3>合約指標摘要</h3>' +
-          '<p style="font-size:0.9rem">偏向：<strong>' + plan.bias + '</strong> · 建議方向：<strong>' + plan.direction + '</strong></p>' +
+          '<p style="font-size:0.9rem">偏向：<strong>' + plan.bias + '</strong> · 方向：<strong>' + plan.direction + '</strong>（與上方燈號同一套計算）</p>' +
           '<p style="font-size:0.85rem;color:var(--muted)">MA20 $' + (plan.ma20 ? plan.ma20.toFixed(1) : '—') +
           ' · MA50 $' + (plan.ma50 ? plan.ma50.toFixed(1) : '—') +
           ' · ATR(14) $' + plan.lastAtr.toFixed(1) +
           (plan.fundNote ? ' · ' + plan.fundNote : '') + '</p></div>';
 
-        html += '<div class="advice-box strong-buy" style="margin-top:12px">' +
-          '<h3>幣安 PAXG/USDT 開單參數建議</h3>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。幣安無法由外部自動下單。</p>' +
+        const paramBoxClass = (plan.direction.indexOf('觀望') >= 0) ? 'advice-box' : 'advice-box strong-buy';
+        html += '<div class="' + paramBoxClass + '" style="margin-top:12px">' +
+          '<h3>幣安 PAXG/USDT 開單參數</h3>' +
+          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">與上方燈號同一套計算。方向為「觀望」時參數僅作風險參考，不代表建議開倉。非投資建議。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
           '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong></td></tr>' +
@@ -422,7 +422,7 @@
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'tp2\')">停利2</button>' +
           '<button type="button" class="refresh-btn" style="margin:0;padding:8px 12px" onclick="copyTradeParams(\'leverage\')">槓桿</button>' +
           '</div>' +
-          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">手機按「開啟幣安 App」可嘗試直接進 App；失敗會改開網頁。參數仍需在 App 內手動填入。</p></div>';
+          '<p style="font-size:0.78rem;color:var(--muted);margin-top:10px">手機可試 App；失敗則開網頁。參數需手動填入。</p></div>';
       }
 
       if (body) body.innerHTML = html;
