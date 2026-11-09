@@ -196,9 +196,8 @@
         <div>
           <label>聯名卡回饋</label>
           <select id="rewardRate">
-            <option value="0">無回饋 (0%)</option>
+            <option value="0" selected>無回饋 (0%)</option>
             <option value="2">賣場 2%（好多金）</option>
-            <option value="3" selected>線上 3%（好多金）</option>
           </select>
         </div>
       </div>
@@ -248,13 +247,11 @@
 
   <script>
     const USD_TWD = 32.85;
-    // 你的 Cloudflare Worker
     const WORKER_URL = 'https://workers-playground-orange-mountain-73c1.aid-grab9x.workers.dev';
     let chart = null;
     let currentSpot = null;
     let costcoProducts = [];
 
-    // 備援資料（Worker 失敗時使用）
     const FALLBACK_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
@@ -286,11 +283,7 @@
         const data = await res.json();
         if (!data.ok || !Array.isArray(data.products)) throw new Error(data.error || '格式錯誤');
         costcoProducts = data.products.map(p => ({
-          name: p.name,
-          grams: p.grams,
-          price: p.price,
-          stock: !!p.stock,
-          url: p.url
+          name: p.name, grams: p.grams, price: p.price, stock: !!p.stock, url: p.url
         }));
         status.className = 'status live';
         status.textContent = '即時資料 · ' + (data.count || costcoProducts.length) + ' 筆 · 更新於 ' +
