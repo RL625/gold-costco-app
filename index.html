@@ -16,14 +16,9 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
       background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
       padding: clamp(10px, 2.5vw, 20px);
-      width: 100%;
-      overflow-x: hidden;
+      width: 100%; overflow-x: hidden;
     }
-    .container {
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto;
-    }
+    .container { width: 100%; max-width: 960px; margin: 0 auto; }
     header {
       text-align: center; padding: clamp(16px, 3vw, 24px) 0 16px;
       border-bottom: 1px solid var(--border); margin-bottom: clamp(14px, 2vw, 24px);
@@ -38,8 +33,7 @@
     .card {
       background: var(--card); border: 1px solid var(--border); border-radius: 16px;
       padding: clamp(14px, 3vw, 20px); margin-bottom: clamp(14px, 2vw, 20px);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3); width: 100%;
     }
     .card h2 {
       font-size: clamp(1rem, 3.2vw, 1.15rem); margin-bottom: 14px;
@@ -75,12 +69,7 @@
     .stat { text-align: center; }
     .stat .v { font-weight: 600; color: var(--gold); }
     .stat .l { color: var(--muted); font-size: 0.75rem; }
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      margin: 0 -2px;
-    }
+    .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 0.82rem; }
     th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
     th { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
@@ -107,8 +96,7 @@
     .calc-bar label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
     .calc-bar select {
       background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      padding: 10px 12px; border-radius: 8px; font-size: 0.95rem;
-      max-width: 100%;
+      padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; max-width: 100%;
     }
     .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
     .links a { color: var(--gold); text-decoration: none; font-size: 0.9rem; }
@@ -126,6 +114,8 @@
     a.buy { color: var(--gold); text-decoration: none; }
     a.buy:hover { text-decoration: underline; }
     .status { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+    .status.live { color: var(--green); }
+    .status.fallback { color: var(--gold); }
     @media (max-width: 768px) {
       table { font-size: 0.78rem; min-width: 520px; }
       th, td { padding: 8px 5px; }
@@ -195,9 +185,11 @@
     </div>
 
     <div class="card">
-      <h2>🛒 好市多黃金 · 溢價比較</h2>
+      <h2>🛒 好市多黃金 · 溢價比較
+        <button class="refresh-btn" onclick="loadCostco(true)">更新好市多</button>
+      </h2>
       <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">
-        依目前國際金價與回饋自動計算溢價。列表：有貨優先。
+        開啟網頁自動抓取最新售價；也可按「更新好市多」手動再抓一次。
       </p>
 
       <div class="calc-bar">
@@ -211,7 +203,7 @@
         </div>
       </div>
 
-      <p id="costcoStatus" class="status">好市多資料更新：2026/11/09 · 排序：有貨優先</p>
+      <p id="costcoStatus" class="status">讀取好市多中...</p>
 
       <div class="table-wrap">
         <table>
@@ -249,17 +241,21 @@
     </div>
 
     <div class="disclaimer">
-      本工具僅供資訊參考。金價來自公開 API；好市多價格為手動更新，實際以官網為準。<br>
+      本工具僅供資訊參考。金價來自公開 API；好市多經 Worker 代理，實際以官網為準。<br>
       非投資建議。購買黃金有市場風險，請自行評估。
     </div>
   </div>
 
   <script>
     const USD_TWD = 32.85;
+    // 你的 Cloudflare Worker
+    const WORKER_URL = 'https://workers-playground-orange-mountain-73c1.aid-grab9x.workers.dev';
     let chart = null;
     let currentSpot = null;
+    let costcoProducts = [];
 
-    const COSTCO_PRODUCTS = [
+    // 備援資料（Worker 失敗時使用）
+    const FALLBACK_PRODUCTS = [
       { name: 'APMEX 羊年黃金條塊', grams: 1, price: 5299, stock: true,
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/APMEX-Year-of-The-Goat-Gold-Bullion-1-g/p/162110' },
       { name: 'PAMP 美國白鷹', grams: 5, price: 23789, stock: true,
@@ -280,6 +276,35 @@
         url: 'https://www.costco.com.tw/Jewelry-Gold/22K-24k-Gold/Precious-Metal-Bullion-and-Gold-Bars/The-Perth-Mint-Black-Swan-Gold-Rectangular-Ingot-1-oz/p/163793' }
     ];
 
+    async function loadCostco(force) {
+      const status = document.getElementById('costcoStatus');
+      status.className = 'status';
+      status.textContent = '正在抓取好市多最新售價...';
+      try {
+        const url = WORKER_URL + (force ? ('?t=' + Date.now()) : '');
+        const res = await fetch(url, { cache: 'no-store' });
+        const data = await res.json();
+        if (!data.ok || !Array.isArray(data.products)) throw new Error(data.error || '格式錯誤');
+        costcoProducts = data.products.map(p => ({
+          name: p.name,
+          grams: p.grams,
+          price: p.price,
+          stock: !!p.stock,
+          url: p.url
+        }));
+        status.className = 'status live';
+        status.textContent = '即時資料 · ' + (data.count || costcoProducts.length) + ' 筆 · 更新於 ' +
+          (data.updatedAt ? new Date(data.updatedAt).toLocaleString('zh-TW') : new Date().toLocaleString('zh-TW'));
+        renderTable();
+      } catch (e) {
+        console.error(e);
+        costcoProducts = FALLBACK_PRODUCTS.slice();
+        status.className = 'status fallback';
+        status.textContent = '即時抓取失敗，改用備援資料。' + (e.message ? ' (' + e.message + ')' : '');
+        renderTable();
+      }
+    }
+
     function calcItem(p, usdOz, rewardPct) {
       if (p.price == null || p.price <= 0 || !p.grams) return null;
       const meltUsd = (p.grams / 31.1035) * usdOz;
@@ -291,7 +316,7 @@
     }
 
     function renderTable() {
-      const list = COSTCO_PRODUCTS.slice().sort((a, b) => {
+      const list = (costcoProducts.length ? costcoProducts : FALLBACK_PRODUCTS).slice().sort((a, b) => {
         if (!!a.stock !== !!b.stock) return a.stock ? -1 : 1;
         return (a.grams || 0) - (b.grams || 0);
       });
@@ -300,9 +325,7 @@
       const computed = list.map(p => calcItem(p, usdOz, rewardPct));
 
       let bestIdx = -1;
-      const stocked = computed
-        .map((c, i) => c && list[i].stock ? { c, i } : null)
-        .filter(Boolean);
+      const stocked = computed.map((c, i) => c && list[i].stock ? { c, i } : null).filter(Boolean);
       if (stocked.length) {
         bestIdx = stocked.reduce((a, b) => a.c.premium <= b.c.premium ? a : b).i;
       } else {
@@ -432,7 +455,7 @@
 
     loadSpot();
     loadHistory(7);
-    renderTable();
+    loadCostco(false);
   </script>
 </body>
 </html>
