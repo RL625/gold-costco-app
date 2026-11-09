@@ -94,18 +94,22 @@
     const lastMa20 = ma20[ma20.length - 1];
     const lastMa50 = ma50[ma50.length - 1];
 
+    // 結構優先：均線排列決定主方向，RSI 只做加減分，避免與燈號打架
     let bias = '中性', direction = '觀望', score = 0;
-    if (last > lastMa20) score += 1;
-    if (last > lastMa50) score += 1;
-    if (lastMa20 > lastMa50) score += 1;
-    if (lastRsi != null && lastRsi < 35) score += 1;
-    if (lastRsi != null && lastRsi > 65) score -= 1;
+    const bullStruct = last > lastMa20 && lastMa20 > lastMa50;
+    const bearStruct = last < lastMa20 && lastMa20 < lastMa50;
+    if (bullStruct) score += 3;
+    else if (last > lastMa20 && last > lastMa50) score += 2;
+    else if (last > lastMa20) score += 1;
+    if (bearStruct) score -= 3;
+    else if (last < lastMa20 && last < lastMa50) score -= 2;
+    else if (last < lastMa20) score -= 1;
+    if (lastRsi != null && lastRsi < 30) score += 1;
     if (lastRsi != null && lastRsi > 70) score -= 1;
-    if (last < lastMa20) score -= 1;
-    if (last < lastMa50) score -= 1;
 
     if (score >= 2) { bias = '偏多'; direction = '做多 (Long)'; }
     else if (score <= -2) { bias = '偏空'; direction = '做空 (Short)'; }
+    else { bias = '中性'; direction = '觀望'; }
 
     let leverage = lastAtr / last > 0.02 ? 3 : (lastAtr / last > 0.012 ? 5 : 7);
     leverage = Math.min(10, Math.max(2, leverage));
@@ -219,26 +223,31 @@
     else if (plan.direction.indexOf('做空') >= 0) dir = 'red';
     else dirText = '觀望';
 
-    let go = 'wait', goTitle = '⏳ 暫時觀望', goSub = '訊號分歧或條件不足，不建議立刻開單。';
+    // 方向唯一來源：plan.direction（與參數表同一套 buildTradePlan）
+    let go = 'wait', goTitle = '⏳ 暫時觀望', goSub = '訊號不足，不建議立刻開單。';
 
     if (plan.direction.indexOf('做多') >= 0) {
-      if (trend === 'green' && mom !== 'red' && vol !== 'red' && lastRsi < 70) {
-        go = 'yes'; goTitle = '✅ 適合開多單'; goSub = '多頭結構成立，動能未超買，可考慮多單並設停損。';
-      } else if (trend === 'green' && mom === 'red') {
-        go = 'wait'; goTitle = '⚠️ 多頭但動能超買'; goSub = '趨勢向上但 RSI 偏高，等回檔再多較佳。';
+      if (mom === 'red' || (lastRsi != null && lastRsi >= 70)) {
+        go = 'wait'; goTitle = '⚠️ 偏多但動能超買'; goSub = '系統方向做多，但 RSI 偏高，等回檔再多較佳。參數表仍顯示多單參考。';
+      } else if (vol === 'red') {
+        go = 'wait'; goTitle = '⚠️ 偏多但波動過大'; goSub = '系統方向做多，波動偏高，建議降槓桿或縮小倉位。';
+      } else {
+        go = 'yes'; goTitle = '✅ 適合開多單'; goSub = '與下方參數一致：建議做多，並設停損。';
       }
     } else if (plan.direction.indexOf('做空') >= 0) {
-      if (trend === 'red' && mom !== 'green' && vol !== 'red') {
-        go = 'yes'; goTitle = '✅ 適合開空單'; goSub = '空頭結構成立，動能未轉多，可考慮空單並設停損。';
-      } else if (trend === 'red' && mom === 'green') {
-        go = 'wait'; goTitle = '⚠️ 空頭但動能背離'; goSub = '價格偏空但 RSI 偏多，等動能轉弱再空較穩。';
+      if (mom === 'green' || (lastRsi != null && lastRsi <= 30)) {
+        go = 'wait'; goTitle = '⚠️ 偏空但動能背離'; goSub = '系統方向做空，但 RSI 偏多／超賣反彈風險，等動能轉弱再空較穩。參數表仍顯示空單參考。';
+      } else if (vol === 'red') {
+        go = 'wait'; goTitle = '⚠️ 偏空但波動過大'; goSub = '系統方向做空，波動偏高，建議降槓桿或縮小倉位。';
+      } else {
+        go = 'yes'; goTitle = '✅ 適合開空單'; goSub = '與下方參數一致：建議做空，並設停損。';
       }
     } else {
-      go = 'wait'; goTitle = '⏳ 暫時觀望'; goSub = '多空未明，不建議新開倉。';
+      go = 'wait'; goTitle = '⏳ 暫時觀望'; goSub = '系統方向為觀望，下方參數僅作風險參考，不代表建議開倉。';
     }
 
     if (vol === 'red' && lastRsi != null && (lastRsi > 75 || lastRsi < 25)) {
-      go = 'no'; goTitle = '🚫 不適合開單'; goSub = '波動過大且動能極端，追價風險高。';
+      go = 'no'; goTitle = '🚫 不適合開單'; goSub = '波動過大且動能極端，即使有方向也不建議追價。';
     }
 
     return {
@@ -411,7 +420,7 @@
         const paramBoxClass = (plan.direction.indexOf('觀望') >= 0) ? 'advice-box' : 'advice-box strong-buy';
         html += '<div class="' + paramBoxClass + '" style="margin-top:12px">' +
           '<h3>幣安 PAXG/USDT 開單參數</h3>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">與上方燈號同一套計算。方向為「觀望」時參數僅作風險參考。非投資建議。</p>' +
+          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">方向與上方結論一致。觀望時參數僅作風險參考。非投資建議。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
           '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong></td></tr>' +
@@ -444,7 +453,7 @@
       if (status) { status.className = 'status fallback'; status.textContent = '載入失敗：' + (e.message || e); }
       if (body) body.innerHTML = '<p class="loading">無法取得資料。' + (e.message || e) + '</p>';
       const dash = document.getElementById('paxgDashboard');
-      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」。若持續失敗，多半是網路或來源暫時不可用。</div></div>';
+      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」。</div></div>';
     }
   }
 
