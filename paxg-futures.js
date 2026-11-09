@@ -1,4 +1,4 @@
-/* PAXG/USDT futures helpers — Binance public API (client-side) */
+/* PAXG/USDT futures helpers — Binance public API + xaus fallback */
 (function (global) {
   const FAPI = 'https://fapi.binance.com';
   const INTERVAL_MAP = { '7': '4h', '30': '1d', '90': '1d', '180': '1d', '365': '1d', '2000': '1w' };
@@ -360,13 +360,22 @@
     try {
       let ohlc = null, prem = null, ticker = null, dataSource = 'binance';
       try {
-        ohlc = await fetchKlines(days || 30);
-        prem = await fetchPremium().catch(() => null);
-        ticker = await fetchTicker().catch(() => null);
+        const binancePromise = Promise.all([
+          fetchKlines(days || 30),
+          fetchPremium().catch(() => null),
+          fetchTicker().catch(() => null)
+        ]);
+        const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Binance timeout')), 4000));
+        const result = await Promise.race([binancePromise, timeout]);
+        ohlc = result[0];
+        prem = result[1];
+        ticker = result[2];
       } catch (binanceErr) {
-        console.warn('Binance failed, fallback xaus', binanceErr);
+        console.warn('Binance unavailable, use xaus', binanceErr);
         dataSource = 'xaus';
         ohlc = await fetchKlinesFromXaus(days || 30);
+        prem = null;
+        ticker = null;
       }
       if (!ohlc || !ohlc.length) throw new Error('無 K 線資料');
 
@@ -402,7 +411,7 @@
         const paramBoxClass = (plan.direction.indexOf('觀望') >= 0) ? 'advice-box' : 'advice-box strong-buy';
         html += '<div class="' + paramBoxClass + '" style="margin-top:12px">' +
           '<h3>幣安 PAXG/USDT 開單參數</h3>' +
-          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">與上方燈號同一套計算。方向為「觀望」時參數僅作風險參考，不代表建議開倉。非投資建議。</p>' +
+          '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">與上方燈號同一套計算。方向為「觀望」時參數僅作風險參考。非投資建議。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
           '<tr><td>建議槓桿</td><td><strong>' + plan.leverage + 'x</strong></td></tr>' +
@@ -428,14 +437,14 @@
       if (body) body.innerHTML = html;
       if (status) {
         status.className = 'status live';
-        status.textContent = (dataSource === 'binance' ? 'PAXGUSDT 幣安合約' : '備援：現貨金價近似 K 線') + ' · 更新於 ' + new Date().toLocaleString('zh-TW');
+        status.textContent = (dataSource === 'binance' ? 'PAXGUSDT 幣安合約' : '備援：現貨金價近似 K 線（幣安 API 不可用）') + ' · 更新於 ' + new Date().toLocaleString('zh-TW');
       }
     } catch (e) {
       console.error(e);
       if (status) { status.className = 'status fallback'; status.textContent = '載入失敗：' + (e.message || e); }
       if (body) body.innerHTML = '<p class="loading">無法取得資料。' + (e.message || e) + '</p>';
       const dash = document.getElementById('paxgDashboard');
-      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」。</div></div>';
+      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」。若持續失敗，多半是網路或來源暫時不可用。</div></div>';
     }
   }
 
