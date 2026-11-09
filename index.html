@@ -6,7 +6,7 @@
   <title>金脈終端 GoldVein · 黃金與 PAXG 合約分析</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=7"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=8"></script>
   <script src="https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/k-analysis.js?v=2"></script>
   <style>
     :root {
@@ -94,29 +94,8 @@
   <div class="container">
     <header>
       <h1>🪙 金脈終端 GoldVein</h1>
-      <p>合約開單訊號 · 現貨金價 · 好市多溢價</p>
+      <p>現貨金價 · 合約開單 · 好市多溢價</p>
     </header>
-
-    <div class="card" style="border-color:rgba(245,197,24,0.5);background:rgba(245,197,24,0.1)">
-      <p style="margin:0 0 8px;text-align:center;font-size:0.9rem;color:var(--muted)">開單結論（與下方儀表板同步）</p>
-      <div id="topGoBanner"><p class="loading" style="padding:8px">載入訊號中…</p></div>
-    </div>
-
-    <div class="card" id="paxgSection">
-      <h2>📉 PAXG/USDT 合約開單儀表板 <button class="refresh-btn" onclick="refreshPaxg()">重新整理</button></h2>
-      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">燈號顯示趨勢／動能／波動／資金費率，並直接告訴你是否適合開單。</p>
-      <div class="period-btns" id="paxgPeriodBtns">
-        <button data-days="7">7 天</button>
-        <button class="active" data-days="30">30 天</button>
-        <button data-days="90">90 天</button>
-        <button data-days="180">半年</button>
-        <button data-days="365">1 年</button>
-      </div>
-      <div id="paxgCandle" class="chart-wrap" style="min-height:260px"></div>
-      <p id="paxgStatus" class="status">準備載入…</p>
-      <div id="paxgDashboard"></div>
-      <div id="paxgBody"></div>
-    </div>
 
     <div class="card">
       <h2>📈 即時國際金價 <button class="refresh-btn" onclick="loadSpot()">重新整理</button></h2>
@@ -132,18 +111,20 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>📉 金價走勢</h2>
-      <div class="period-btns">
-        <button class="active" data-days="7">7 天</button>
-        <button data-days="30">30 天</button>
+    <div class="card" id="paxgSection">
+      <h2>📉 PAXG/USDT 合約開單儀表板 <button class="refresh-btn" onclick="refreshPaxg()">重新整理</button></h2>
+      <p style="font-size:0.9rem;color:var(--muted);margin-bottom:10px">燈號與下方參數同一套計算，並顯示是否適合開單。</p>
+      <div class="period-btns" id="paxgPeriodBtns">
+        <button data-days="7">7 天</button>
+        <button class="active" data-days="30">30 天</button>
         <button data-days="90">90 天</button>
         <button data-days="180">半年</button>
         <button data-days="365">1 年</button>
-        <button data-days="2000">全部</button>
       </div>
-      <div class="chart-wrap"><canvas id="goldChart"></canvas></div>
-      <div class="stats-row" id="chartStats"></div>
+      <div id="paxgCandle" class="chart-wrap" style="min-height:260px"></div>
+      <p id="paxgStatus" class="status">準備載入…</p>
+      <div id="paxgDashboard"></div>
+      <div id="paxgBody"></div>
     </div>
 
     <div class="card">
@@ -180,7 +161,7 @@
   <script>
     const USD_TWD = 32.85;
     const WORKER_URL = 'https://workers-playground-orange-mountain-73c1.aid-grab9x.workers.dev';
-    let chart = null, currentSpot = null, costcoProducts = [];
+    let currentSpot = null, costcoProducts = [];
     let paxgDays = 30;
 
     const FALLBACK_PRODUCTS = [
@@ -298,39 +279,6 @@
       } catch (e) { loading.textContent = '載入失敗'; renderTable(); }
     }
 
-    async function loadHistory(days) {
-      try {
-        const data = await (await fetch('https://xaus.com/api/v1/history?days=' + days)).json();
-        const points = data.points || [], closes = points.map(p => p.c);
-        const ctx = document.getElementById('goldChart').getContext('2d');
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: { labels: points.map(p => p.d), datasets: [{ data: closes, borderColor: '#f5c518', backgroundColor: 'rgba(245,197,24,0.15)', fill: true, tension: 0.3, pointRadius: days > 90 ? 0 : 2, borderWidth: 2 }] },
-          options: {
-            responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-            scales: {
-              x: { ticks: { color: '#8b9bb4', maxTicksLimit: 8 }, grid: { color: 'rgba(45,58,79,0.5)' } },
-              y: { ticks: { color: '#8b9bb4', callback: v => '$' + v }, grid: { color: 'rgba(45,58,79,0.5)' } }
-            }
-          }
-        });
-        if (closes.length > 1) {
-          const first = closes[0], last = closes[closes.length - 1];
-          const change = last - first, pct = (change / first * 100).toFixed(2);
-          const high = Math.max(...points.map(p => p.h != null ? p.h : p.c));
-          const low = Math.min(...points.map(p => p.l != null ? p.l : p.c));
-          document.getElementById('chartStats').innerHTML =
-            '<div class="stat"><div class="v">$' + last.toFixed(1) + '</div><div class="l">最新收盤</div></div>' +
-            '<div class="stat"><div class="v ' + (change >= 0 ? 'change-up' : 'change-down') + '">' + (change >= 0 ? '+' : '') + pct + '%</div><div class="l">期間漲跌</div></div>' +
-            '<div class="stat"><div class="v">$' + high.toFixed(1) + '</div><div class="l">期間最高(盤中)</div></div>' +
-            '<div class="stat"><div class="v">$' + low.toFixed(1) + '</div><div class="l">期間最低(盤中)</div></div>';
-        }
-      } catch (e) {
-        document.getElementById('chartStats').innerHTML = '<p class="loading">走勢圖載入失敗</p>';
-      }
-    }
-
     async function fallbackDashboard() {
       try {
         const days = paxgDays || 30;
@@ -378,8 +326,6 @@
         h += '</div>';
         const dash = document.getElementById('paxgDashboard');
         if (dash) dash.innerHTML = h;
-        const top = document.getElementById('topGoBanner');
-        if (top) top.innerHTML = '<div class="go-banner '+goClass+'"><div class="go-title">'+goTitle+'</div><div class="go-sub">'+goSub+'</div></div>';
         const st = document.getElementById('paxgStatus');
         if (st) { st.className='status live'; st.textContent='開單訊號 · $'+last.toFixed(1)+' · '+new Date().toLocaleString('zh-TW'); }
       } catch(e) {
@@ -393,26 +339,13 @@
       if (typeof loadPaxgPanel === 'function') {
         Promise.resolve(loadPaxgPanel(paxgDays)).then(function() {
           var dash = document.getElementById('paxgDashboard');
-          var top = document.getElementById('topGoBanner');
-          if (dash && top) {
-            var b = dash.querySelector('.go-banner');
-            if (b) top.innerHTML = b.outerHTML;
-            else fallbackDashboard();
-          }
+          if (!dash || !dash.innerHTML.trim()) fallbackDashboard();
         }).catch(function() { fallbackDashboard(); });
       } else {
         fallbackDashboard();
       }
     }
 
-    document.querySelectorAll('.period-btns button').forEach(btn => {
-      if (btn.closest('#paxgPeriodBtns')) return;
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.period-btns button').forEach(b => { if (!b.closest('#paxgPeriodBtns')) b.classList.remove('active'); });
-        btn.classList.add('active');
-        loadHistory(parseInt(btn.dataset.days));
-      });
-    });
     document.querySelectorAll('#paxgPeriodBtns button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('#paxgPeriodBtns button').forEach(b => b.classList.remove('active'));
@@ -423,7 +356,6 @@
     });
 
     loadSpot();
-    loadHistory(7);
     loadCostco(false);
     setTimeout(function(){ if (typeof loadKAnalysis === 'function') loadKAnalysis(); }, 500);
     setTimeout(refreshPaxg, 600);
