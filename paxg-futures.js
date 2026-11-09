@@ -56,6 +56,19 @@
     return raw.map(k => ({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5], time: Math.floor(k[0] / 1000) }));
   }
 
+  async function fetchKlinesFromXaus(days) {
+    const res = await fetch('https://xaus.com/api/v1/history?days=' + (days || 30));
+    if (!res.ok) throw new Error('xaus ' + res.status);
+    const data = await res.json();
+    const pts = data.points || [];
+    return pts.map((p, i) => {
+      const c = p.c, h = p.h != null ? p.h : c, l = p.l != null ? p.l : c;
+      const o = i > 0 ? pts[i - 1].c : c;
+      const t = Date.parse(p.d + 'T00:00:00Z');
+      return { t: t, o: o, h: h, l: l, c: c, v: 0, time: Math.floor(t / 1000) };
+    }).filter(x => !isNaN(x.time));
+  }
+
   async function fetchPremium() {
     const res = await fetch(FAPI + '/fapi/v1/premiumIndex?symbol=PAXGUSDT');
     if (!res.ok) throw new Error('premium ' + res.status);
@@ -125,16 +138,16 @@
 
   let candleChart = null;
 
-  async function renderCandle(containerId, days) {
+  async function renderCandle(containerId, days, ohlcData) {
     const el = document.getElementById(containerId);
     if (!el) return;
     el.innerHTML = '';
     if (typeof LightweightCharts === 'undefined') {
-      el.innerHTML = '<p class="loading">K線函式庫載入中…</p>';
+      el.innerHTML = '<p class="loading">K線函式庫載入中…請重新整理</p>';
       return;
     }
     try {
-      const ohlc = await fetchKlines(days);
+      const ohlc = ohlcData || await fetchKlines(days);
       const chart = LightweightCharts.createChart(el, {
         width: el.clientWidth, height: el.clientHeight || 280,
         layout: { background: { color: '#1a2332' }, textColor: '#8b9bb4' },
@@ -158,7 +171,7 @@
       return ohlc;
     } catch (e) {
       console.error(e);
-      el.innerHTML = '<p class="loading">無法載入幣安 K 線。' + (e.message || '') + '</p>';
+      el.innerHTML = '<p class="loading">無法載入 K 線。' + (e.message || '') + '</p>';
       return null;
     }
   }
@@ -242,7 +255,7 @@
 
   function renderDashboard(signals) {
     const el = document.getElementById('paxgDashboard');
-    if (!el || !signals) { if (el) el.innerHTML = ''; return; }
+    if (!el || !signals) { if (el) el.innerHTML = '<p class="loading">尚無訊號資料</p>'; return; }
     const goClass = signals.go === 'yes' ? 'go-yes' : (signals.go === 'no' ? 'go-no' : 'go-wait');
     let html = '<div class="go-banner ' + goClass + '">' +
       '<div class="go-title">' + signals.goTitle + '</div>' +
@@ -260,14 +273,21 @@
   async function loadPaxgPanel(days) {
     const status = document.getElementById('paxgStatus');
     const body = document.getElementById('paxgBody');
-    if (status) status.textContent = '載入 PAXGUSDT 合約資料…';
+    if (status) status.textContent = '載入合約／K線資料…';
     try {
-      const [ohlc, prem, ticker] = await Promise.all([
-        fetchKlines(days || 30),
-        fetchPremium().catch(() => null),
-        fetchTicker().catch(() => null)
-      ]);
-      await renderCandle('paxgCandle', days || 30);
+      let ohlc = null, prem = null, ticker = null, dataSource = 'binance';
+      try {
+        ohlc = await fetchKlines(days || 30);
+        prem = await fetchPremium().catch(() => null);
+        ticker = await fetchTicker().catch(() => null);
+      } catch (binanceErr) {
+        console.warn('Binance failed, fallback xaus', binanceErr);
+        dataSource = 'xaus';
+        ohlc = await fetchKlinesFromXaus(days || 30);
+      }
+      if (!ohlc || !ohlc.length) throw new Error('無 K 線資料');
+
+      await renderCandle('paxgCandle', days || 30, ohlc);
       const fund = prem ? parseFloat(prem.lastFundingRate) : null;
       const mark = prem ? parseFloat(prem.markPrice) : (ohlc[ohlc.length - 1].c);
       const plan = buildTradePlan(ohlc, fund);
@@ -276,15 +296,15 @@
       renderDashboard(buildSignals(plan, fund, lastRsi));
 
       let html = '';
+      html += '<div class="price-grid" style="margin-bottom:12px">' +
+        '<div class="price-box"><div class="label">標記／現價</div><div class="value">$' + Number(mark).toFixed(2) + '</div><div class="sub">' + (dataSource === 'binance' ? 'PAXGUSDT' : '現貨近似') + '</div></div>';
       if (ticker) {
-        html += '<div class="price-grid" style="margin-bottom:12px">' +
-          '<div class="price-box"><div class="label">標記價</div><div class="value">$' + mark.toFixed(2) + '</div><div class="sub">PAXGUSDT</div></div>' +
-          '<div class="price-box"><div class="label">24h 漲跌</div><div class="value ' + (+ticker.priceChangePercent >= 0 ? 'change-up' : 'change-down') + '">' +
-          (+ticker.priceChangePercent >= 0 ? '+' : '') + Number(ticker.priceChangePercent).toFixed(2) + '%</div><div class="sub">成交量 ' + Number(ticker.quoteVolume).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div></div>' +
-          '<div class="price-box"><div class="label">資金費率</div><div class="value">' + (fund != null ? (fund * 100).toFixed(4) + '%' : '—') + '</div><div class="sub">每結算週期</div></div>' +
-          '<div class="price-box"><div class="label">RSI(14)</div><div class="value">' + (lastRsi != null ? lastRsi.toFixed(1) : '—') + '</div><div class="sub">' +
-          (lastRsi > 70 ? '超買區' : lastRsi < 30 ? '超賣區' : '中性') + '</div></div></div>';
+        html += '<div class="price-box"><div class="label">24h 漲跌</div><div class="value ' + (+ticker.priceChangePercent >= 0 ? 'change-up' : 'change-down') + '">' +
+          (+ticker.priceChangePercent >= 0 ? '+' : '') + Number(ticker.priceChangePercent).toFixed(2) + '%</div><div class="sub">成交量 ' + Number(ticker.quoteVolume).toLocaleString(undefined,{maximumFractionDigits:0}) + '</div></div>';
       }
+      html += '<div class="price-box"><div class="label">資金費率</div><div class="value">' + (fund != null ? (fund * 100).toFixed(4) + '%' : '—') + '</div><div class="sub">每結算週期</div></div>' +
+        '<div class="price-box"><div class="label">RSI(14)</div><div class="value">' + (lastRsi != null ? lastRsi.toFixed(1) : '—') + '</div><div class="sub">' +
+        (lastRsi > 70 ? '超買區' : lastRsi < 30 ? '超賣區' : '中性') + '</div></div></div>';
 
       if (plan) {
         html += '<div class="advice-box" style="margin-top:8px">' +
@@ -296,7 +316,7 @@
           (plan.fundNote ? ' · ' + plan.fundNote : '') + '</p></div>';
 
         html += '<div class="advice-box strong-buy" style="margin-top:12px">' +
-          '<h3>幣安 PAXG/USDT 合約開單參數建議</h3>' +
+          '<h3>幣安 PAXG/USDT 開單參數建議</h3>' +
           '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">僅供參考，非投資建議。</p>' +
           '<div class="table-wrap"><table class="hist-table"><tbody>' +
           '<tr><td>方向</td><td><strong>' + plan.direction + '</strong></td></tr>' +
@@ -313,14 +333,14 @@
       if (body) body.innerHTML = html;
       if (status) {
         status.className = 'status live';
-        status.textContent = 'PAXGUSDT 合約資料 · 更新於 ' + new Date().toLocaleString('zh-TW');
+        status.textContent = (dataSource === 'binance' ? 'PAXGUSDT 幣安合約' : '備援：現貨金價近似 K 線') + ' · 更新於 ' + new Date().toLocaleString('zh-TW');
       }
     } catch (e) {
       console.error(e);
-      if (status) { status.className = 'status fallback'; status.textContent = '幣安 API 無法連線。'; }
-      if (body) body.innerHTML = '<p class="loading">無法取得 PAXGUSDT。' + (e.message || e) + '</p>';
+      if (status) { status.className = 'status fallback'; status.textContent = '載入失敗：' + (e.message || e); }
+      if (body) body.innerHTML = '<p class="loading">無法取得資料。' + (e.message || e) + '</p>';
       const dash = document.getElementById('paxgDashboard');
-      if (dash) dash.innerHTML = '';
+      if (dash) dash.innerHTML = '<div class="go-banner go-wait"><div class="go-title">⏳ 資料未載入</div><div class="go-sub">請按「重新整理」或檢查網路。若在限制地區，系統會改用現貨備援。</div></div>';
     }
   }
 
