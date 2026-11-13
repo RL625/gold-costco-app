@@ -7,10 +7,11 @@
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
 Promise.all([
-  fetch('./gc0.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc0 '+r.status);return r.text()}),
-  fetch('./gc1.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc1 '+r.status);return r.text()}),
-  fetch('./gc2.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc2 '+r.status);return r.text()}),
-  fetch('./gc3.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc3 '+r.status);return r.text()})
+  fetch('./gd0.b64?v=4').then(r=>{if(!r.ok)throw new Error('gd0 '+r.status);return r.text()}),
+  fetch('./gd1.b64?v=4').then(r=>{if(!r.ok)throw new Error('gd1 '+r.status);return r.text()}),
+  fetch('./gd2.b64?v=4').then(r=>{if(!r.ok)throw new Error('gd2 '+r.status);return r.text()}),
+  fetch('./gd3.b64?v=4').then(r=>{if(!r.ok)throw new Error('gd3 '+r.status);return r.text()}),
+  fetch('./gd4.b64?v=4').then(r=>{if(!r.ok)throw new Error('gd4 '+r.status);return r.text()})
 ]).then(function(parts){
   var b64 = parts.join('');
   var bin = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
