@@ -12,7 +12,7 @@ var PAXG_SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/paxg-f
 Promise.all([
   fetch(SRC).then(function(r){ if(!r.ok) throw new Error('page '+r.status); return r.text(); }),
   fetch(PAXG_SRC).then(function(r){ if(!r.ok) throw new Error('paxg '+r.status); return r.text(); }),
-  fetch('./crp.b64?v=7').then(function(r){ if(!r.ok) throw new Error('crp '+r.status); return r.text(); })
+  fetch('./crp.b64?v=8').then(function(r){ if(!r.ok) throw new Error('crp '+r.status); return r.text(); })
 ]).then(function(pair){
   var html = pair[0], paxg = pair[1];
   var bin = Uint8Array.from(atob(pair[2].trim()), function(c){ return c.charCodeAt(0); });
@@ -50,6 +50,10 @@ Promise.all([
   }
   html = html.replace(/href="btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
   html = html.replace(/href="\.\/btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
+
+  var kfix = '<script>(function(){async function loadKAnalysisFixed(){var loading=document.getElementById("kAnalysisLoading"),content=document.getElementById("kAnalysisContent"),grid=document.getElementById("kGrid"),summary=document.getElementById("kSummary");if(loading){loading.style.display="block";loading.textContent="分析各週期中…"}if(content)content.style.display="none";try{var res=await fetch("https://xaus.com/api/v1/history?days=365");if(!res.ok)throw new Error("xaus HTTP "+res.status);var data=await res.json();var all=(data.points||[]).map(function(p){return{d:p.d,c:p.c,h:p.h!=null?p.h:p.c,l:p.l!=null?p.l:p.c}});if(all.length<3)throw new Error("歷史點數不足("+all.length+")");function sliceDays(pts,days){if(!days||days>=2000)return pts.slice();var lastT=Date.parse(pts[pts.length-1].d+"T00:00:00Z");var cut=lastT-days*86400000;return pts.filter(function(p){return Date.parse(p.d+"T00:00:00Z")>=cut})}var periods=[{days:7,label:"7 天"},{days:30,label:"30 天"},{days:90,label:"90 天"},{days:180,label:"半年"},{days:365,label:"1 年"},{days:2000,label:"全部"}];var results=periods.map(function(p){var pts=sliceDays(all,p.days);if(pts.length<2)return{label:p.label,empty:true};if(typeof analyzePeriod==="function"){var a=analyzePeriod(pts,p.label);return a||{label:p.label,empty:true}}var closes=pts.map(function(x){return x.c}),first=closes[0],lastC=closes[closes.length-1],ret=((lastC-first)/first)*100,high=Math.max.apply(null,pts.map(function(x){return x.h})),low=Math.min.apply(null,pts.map(function(x){return x.l}));return{label:p.label,ret:ret,periodHigh:high,periodLow:low,last:lastC,pos:(lastC-low)/(high-low||1),rec:ret>5?"偏買":(ret<-5?"偏慎":"觀望"),recClass:ret>5?"rec-buy":(ret<-5?"rec-wait":"rec-hold"),firstDate:pts[0].d,lastDate:pts[pts.length-1].d}});if(grid)grid.innerHTML=results.map(function(a){if(a.empty)return\'<div class="k-card"><h4>\'+a.label+\' <span class="rec rec-hold">資料不足</span></h4></div>\';var retCls=a.ret>=0?"change-up":"change-down";return\'<div class="k-card"><h4><span>\'+a.label+\'</span><span class="rec \'+(a.recClass||"")+\'">\'+(a.rec||"")+\'</span></h4><div class="meta">\'+(a.firstDate||"")+\' → \'+(a.lastDate||"")+\' · 收 <strong>$\'+Number(a.last).toFixed(1)+\'</strong></div><div class="meta">漲跌 <span class="\'+retCls+\'">\'+(a.ret>=0?"+":"")+Number(a.ret).toFixed(2)+\'%</span> · 高 $\'+Number(a.periodHigh).toFixed(1)+\' · 低 $\'+Number(a.periodLow).toFixed(1)+\'</div></div>\'}).join("");if(summary)summary.innerHTML="<strong>綜合解讀：</strong> 已用 xaus 一次抓取 "+all.length+" 個交易日分析各週期。此為技術面參考，不構成投資建議。";if(loading)loading.style.display="none";if(content)content.style.display="block"}catch(e){console.error(e);if(loading)loading.innerHTML="分析失敗："+(e.message||e)+\' <button class="refresh-btn" onclick="loadKAnalysis()">重試</button>\'}}window.loadKAnalysis=loadKAnalysisFixed;setTimeout(function(){if(document.getElementById("kGrid"))loadKAnalysisFixed()},1500)})();<\/script>';
+  html = html.replace('</body>', kfix + '</body>');
+
   document.open();
   document.write(html);
   document.close();
@@ -58,5 +62,5 @@ Promise.all([
 });
 </script>
 </head>
-<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端（K線指標＋日線）…</body>
+<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端…</body>
 </html>
