@@ -6,34 +6,37 @@
 <title>金脈終端 GoldVein</title>
 <link rel="canonical" href="https://rl625.github.io/gold-costco-app/"/>
 <script>
-// 最新部署入口：https://rl625.github.io/gold-costco-app/
-// 完整應用本體（相對路徑腳本：./paxg-futures.js、./k-analysis.js）
 var SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/index.html';
+var PAXG_JS = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@main/paxg-futures.js?v=' + Date.now();
 fetch(SRC)
   .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
   .then(function(html){
-    // 把站內舊的 jsDelivr/GitHub 深連結改成 GitHub Pages 最新部署
-    html = html
-      .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/RL625\/gold-costco-app@[^"'\s]+\/btc\/?/g, 'https://rl625.github.io/gold-costco-app/btc/')
-      .replace(/https:\/\/github\.com\/RL625\/gold-costco-app[^"'\s]*/g, 'https://rl625.github.io/gold-costco-app/')
-      .replace(/href="btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"')
-      .replace(/href="\.\/btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
+    html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/RL625\/gold-costco-app@[^"' ]+\/paxg-futures\.js[^"' ]*/g, PAXG_JS);
+    html = html.replace(/src="\.\/paxg-futures\.js[^"]*"/g, 'src="'+PAXG_JS+'"');
+    html = html.replace(
+      /<div class="period-btns" id="paxgPeriodBtns">[\s\S]*?<\/div>/,
+      '<div class="period-btns" id="paxgPeriodBtns">' +
+      '<button data-days="7">7天 · 4H</button>' +
+      '<button data-days="14">14天 · 日線</button>' +
+      '<button class="active" data-days="30">30天 · 日線</button>' +
+      '<button data-days="90">90天 · 日線</button>' +
+      '<button data-days="180">半年 · 日線</button>' +
+      '<button data-days="365">1年 · 日線</button>' +
+      '</div>'
+    );
+    if (html.indexOf('height: 340px') < 0) {
+      html = html.replace('</style>', '.chart-wrap{height:340px!important;min-height:340px}\n</style>');
+    }
+    html = html.replace(/href="btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
+    html = html.replace(/href="\.\/btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
     document.open();
     document.write(html);
     document.close();
   })
   .catch(function(e){
-    document.body.innerHTML =
-      '<div style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7;line-height:1.6">' +
-      '<h1 style="color:#d4af37">金脈終端</h1>' +
-      '<p>載入失敗：' + (e && e.message ? e.message : e) + '</p>' +
-      '<p><a style="color:#d4af37" href="https://rl625.github.io/gold-costco-app/">重新開啟最新部署</a></p>' +
-      '<p><a style="color:#d4af37" href="https://rl625.github.io/gold-costco-app/btc/">鏈脈終端（比特幣）</a></p>' +
-      '</div>';
+    document.body.innerHTML = '<div style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7"><h1 style="color:#d4af37">金脈終端</h1><p>載入失敗：'+(e&&e.message?e.message:e)+'</p><p><a style="color:#d4af37" href="https://rl625.github.io/gold-costco-app/btc/">鏈脈終端</a></p></div>';
   });
 </script>
 </head>
-<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">
-載入金脈終端最新部署（https://rl625.github.io/gold-costco-app/）…
-</body>
+<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端最新部署…</body>
 </html>
