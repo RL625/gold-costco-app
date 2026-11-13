@@ -68,10 +68,10 @@ table{width:100%;border-collapse:collapse;font-size:.85rem}td{padding:8px;border
 </div>
 <div class="card">
 <h2>📉 BTCUSDT 儀表板 <button class="rbtn" onclick="loadPanel()">重新整理</button></h2>
-<p class="st">結論與參數同一套計算 · 圖表：7天為4小時K，其餘為日K</p>
+<p class="st">結論與參數同一套計算 · 主資料優先 1 年日K · 7天為4小時K</p>
 <div class="btns" id="pbtns">
-<button data-d="7">7天</button><button class="on" data-d="30">30天</button>
-<button data-d="90">90天</button><button data-d="180">半年</button><button data-d="365">1年</button>
+<button data-d="7">7天</button><button data-d="30">30天</button>
+<button class="on" data-d="90">90天</button><button data-d="180">半年</button><button data-d="365">1年</button>
 </div>
 <div id="candle" class="chart"></div>
 <p id="pst" class="st">準備載入…</p>
@@ -80,7 +80,7 @@ table{width:100%;border-collapse:collapse;font-size:.85rem}td{padding:8px;border
 </div>
 <div class="card">
 <h2>📊 各週期分析 <button class="rbtn" onclick="loadK()">重新分析</button></h2>
-<p class="st">一次抓取後本地切分，避免 API 限流</p>
+<p class="st">一次抓取最長約 1 年後本地切分，避免 API 限流</p>
 <div id="kL" class="loading">分析中...</div>
 <div id="kC" style="display:none"><div class="kgrid" id="kG"></div></div>
 </div>
@@ -88,7 +88,7 @@ table{width:100%;border-collapse:collapse;font-size:.85rem}td{padding:8px;border
 </div>
 <script>
 const CG='https://api.coingecko.com/api/v3';
-let days=30,lastPlan=null,chart=null,cache={},master=null;
+let days=90,lastPlan=null,chart=null,cache={},master=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function sma(a,n){const o=Array(a.length).fill(null);let s=0;for(let i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}
 function rsi(c,n=14){const o=Array(c.length).fill(null);if(c.length<n+1)return o;let g=0,l=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];if(d>=0)g+=d;else l-=d}let ag=g/n,al=l/n;o[n]=al===0?100:100-(100/(1+ag/al));for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1],gg=d>0?d:0,ll=d<0?-d:0;ag=(ag*(n-1)+gg)/n;al=(al*(n-1)+ll)/n;o[i]=al===0?100:100-(100/(1+ag/al))}return o}
@@ -96,8 +96,38 @@ function atr(oh,n=14){const tr=[];for(let i=0;i<oh.length;i++){const h=oh[i].h,l
 function norm(raw){return raw.map(r=>({t:r[0],time:Math.floor(r[0]/1000),o:r[1],h:r[2],l:r[3],c:r[4]})).filter(x=>x.c>0)}
 async function fetchApi(d){if(cache[d]&&Date.now()-cache[d].ts<120000)return cache[d].data;let err=null;for(let a=0;a<3;a++){if(a)await sleep(1200*a);try{const res=await fetch(CG+'/coins/bitcoin/ohlc?vs_currency=usd&days='+d);if(res.status===429){err=new Error('API限流');await sleep(2000*(a+1));continue}if(!res.ok)throw new Error('HTTP '+res.status);const raw=await res.json();if(!Array.isArray(raw))throw new Error('格式錯誤');const data=norm(raw);cache[d]={data,ts:Date.now()};return data}catch(e){err=e}}throw err||new Error('無法取得K線')}
 function slice(oh,d){if(!oh||!oh.length)return[];const cut=Date.now()/1000-d*86400;const s=oh.filter(x=>x.time>=cut);return s.length>=5?s:oh.slice(-Math.min(oh.length,Math.max(10,d)))}
-async function ensure(){if(master&&master.length>20)return master;try{master=await fetchApi(90)}catch(e){master=await fetchApi(30)}return master}
-async function getDays(d){await ensure();return slice(master,d)}
+async function ensure(){
+  // 優先抓 365 天日K，圖表與各週期分析才夠長
+  if(master&&master.length>200)return master;
+  const tryOrder=[365,180,90,30];
+  let lastErr=null;
+  for(const d of tryOrder){
+    try{
+      const data=await fetchApi(d);
+      if(data&&data.length){
+        if(!master||data.length>master.length)master=data;
+        if(master.length>60)return master;
+      }
+    }catch(e){lastErr=e}
+  }
+  if(master&&master.length)return master;
+  throw lastErr||new Error('無法取得K線');
+}
+async function getDays(d){
+  await ensure();
+  const span=master.length?(master[master.length-1].time-master[0].time)/86400:0;
+  // 若主資料已覆蓋所選區間，直接切
+  if(d<=span+10)return slice(master,d);
+  // 否則針對該週期再抓一次（CoinGecko: 90/180/365）
+  const req=d>=300?365:d>=120?180:d>=60?90:30;
+  try{
+    const full=await fetchApi(req);
+    if(full.length>(master?master.length:0))master=full;
+    return slice(full,d);
+  }catch(e){
+    return slice(master,d);
+  }
+}
 function plan(oh){if(!oh||oh.length<15)return null;const c=oh.map(x=>x.c),last=c[c.length-1];const m20=sma(c,Math.min(20,c.length)),m50=sma(c,Math.min(50,c.length));const lm20=m20[m20.length-1],lm50=m50[m50.length-1],lr=rsi(c,14).slice(-1)[0],la=atr(oh,14).slice(-1)[0]||last*0.02;let sc=0;if(last>lm20&&lm20>lm50)sc+=3;else if(last>lm20&&last>lm50)sc+=2;else if(last>lm20)sc+=1;if(last<lm20&&lm20<lm50)sc-=3;else if(last<lm20&&last<lm50)sc-=2;else if(last<lm20)sc-=1;if(lr!=null&&lr<30)sc+=1;if(lr!=null&&lr>70)sc-=1;let bias='中性',dir='觀望';if(sc>=2){bias='偏多';dir='做多 (Long)'}else if(sc<=-2){bias='偏空';dir='做空 (Short)'}let lev=la/last>0.04?2:(la/last>0.025?3:5);lev=Math.min(10,Math.max(2,lev));let entry=last,sl,tp1,tp2;if(dir.indexOf('做多')>=0){sl=last-1.5*la;tp1=last+2*la;tp2=last+3.5*la}else if(dir.indexOf('做空')>=0){sl=last+1.5*la;tp1=last-2*la;tp2=last-3.5*la}else{sl=last-1.2*la;tp1=last+1.5*la;tp2=last+2.5*la}const risk=Math.abs(entry-sl)||1;return{bias,direction:dir,last,lastRsi:lr,lastAtr:la,entry,sl,tp1,tp2,leverage:lev,rr1:Math.abs(tp1-entry)/risk,rr2:Math.abs(tp2-entry)/risk,ma20:lm20,ma50:lm50}}
 function signals(p){if(!p)return null;let trend='yellow',tt='盤整';if(p.last>p.ma20&&p.ma20>p.ma50){trend='green';tt='多頭排列'}else if(p.last<p.ma20&&p.ma20<p.ma50){trend='red';tt='空頭排列'}else if(p.last>p.ma20)tt='站上MA20';else tt='跌破MA20';let mom='yellow',mt='中性';const r=p.lastRsi;if(r!=null){if(r>=70){mom='red';mt='超買 '+r.toFixed(0)}else if(r<=30){mom='green';mt='超賣 '+r.toFixed(0)}else if(r>=55){mom='green';mt='偏多 '+r.toFixed(0)}else if(r<=45){mom='red';mt='偏空 '+r.toFixed(0)}else mt='中性 '+r.toFixed(0)}const ap=p.lastAtr/p.last*100;let vol='yellow',vt=ap.toFixed(2)+'%';if(ap<1.5){vol='green';vt='偏低 '+vt}else if(ap>4){vol='red';vt='偏高 '+vt}else vt='正常 '+vt;let dir='yellow',dt=p.direction;if(p.direction.indexOf('做多')>=0)dir='green';else if(p.direction.indexOf('做空')>=0)dir='red';else dt='觀望';let go='wait',gt='⏳ 暫時觀望',gs='訊號不足';if(p.direction.indexOf('做多')>=0){if(mom==='red'||(r!=null&&r>=70)){gt='⚠️ 偏多但超買';gs='等回檔再多'}else if(vol==='red'){gt='⚠️ 偏多波動大';gs='建議降槓桿'}else{go='yes';gt='✅ 適合開多單';gs='與參數一致：做多並設停損'}}else if(p.direction.indexOf('做空')>=0){if(mom==='green'||(r!=null&&r<=30)){gt='⚠️ 偏空動能背離';gs='等動能轉弱'}else if(vol==='red'){gt='⚠️ 偏空波動大';gs='建議降槓桿'}else{go='yes';gt='✅ 適合開空單';gs='與參數一致：做空並設停損'}}else gs='觀望，參數僅參考';if(vol==='red'&&r!=null&&(r>75||r<25)){go='no';gt='🚫 不適合開單';gs='波動極端勿追價'}return{items:[{lab:'趨勢',level:trend,val:tt},{lab:'RSI',level:mom,val:mt},{lab:'ATR',level:vol,val:vt},{lab:'方向',level:dir,val:dt}],go,gt,gs}}
 function lc(l){return l==='green'?'lg':l==='yellow'?'ly':'lr'}
@@ -154,8 +184,8 @@ function renderCandle(oh){
 function openBn(){window.open('https://www.binance.com/zh-TC/futures/BTCUSDT','_blank','noopener')}
 function copyP(f){const p=lastPlan;if(!p){alert('尚無參數');return}const c=(t,m)=>{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>alert(m||'已複製')).catch(()=>prompt('複製',t));else prompt('複製',t)};if(f==='entry')return c(p.entry.toFixed(2),'進場');if(f==='sl')return c(p.sl.toFixed(2),'停損');if(f==='tp1')return c(p.tp1.toFixed(2),'停利1');if(f==='tp2')return c(p.tp2.toFixed(2),'停利2');if(f==='lev')return c(String(p.leverage),'槓桿');c(['BTCUSDT 參考參數','方向: '+p.direction,'槓桿: '+p.leverage+'x','進場: '+p.entry.toFixed(2),'停損: '+p.sl.toFixed(2),'停利1: '+p.tp1.toFixed(2),'停利2: '+p.tp2.toFixed(2),'','請手動填入幣安'].join('\n'),'已複製')}
 async function loadSpot(){const L=document.getElementById('spotL'),C=document.getElementById('spotC');L.style.display='block';C.style.display='none';try{const res=await fetch(CG+'/simple/price?ids=bitcoin&vs_currencies=usd,twd&include_24hr_change=true');if(!res.ok)throw new Error('HTTP '+res.status);const b=(await res.json()).bitcoin;document.getElementById('pUsd').textContent='$'+b.usd.toLocaleString('en-US',{maximumFractionDigits:0});document.getElementById('pTwd').textContent='NT$'+Math.round(b.twd).toLocaleString();document.getElementById('pM').textContent='NT$'+Math.round(b.twd/1000).toLocaleString();const f=v=>(v>=0?'+':'')+v.toFixed(2)+'%',cl=v=>v>=0?'up':'dn';document.getElementById('cUsd').innerHTML='<span class="'+cl(b.usd_24h_change)+'">24h '+f(b.usd_24h_change)+'</span>';document.getElementById('cTwd').innerHTML='<span class="'+cl(b.twd_24h_change)+'">24h '+f(b.twd_24h_change)+'</span>';document.getElementById('upd').textContent='CoinGecko · '+new Date().toLocaleString('zh-TW');L.style.display='none';C.style.display='block'}catch(e){L.textContent='載入失敗：'+(e.message||e)}}
-async function loadPanel(){const st=document.getElementById('pst'),body=document.getElementById('body');st.className='st';st.textContent='載入中…';try{const oh=await getDays(days);if(!oh.length)throw new Error('無K線');renderCandle(oh);const p=plan(oh);if(!p)throw new Error('資料不足');lastPlan=p;renderDash(signals(p));body.innerHTML='<div class="grid"><div class="box"><div class="l">最新</div><div class="v">$'+p.last.toLocaleString(undefined,{maximumFractionDigits:0})+'</div></div><div class="box"><div class="l">RSI</div><div class="v">'+(p.lastRsi!=null?p.lastRsi.toFixed(1):'—')+'</div></div><div class="box"><div class="l">ATR</div><div class="v">$'+p.lastAtr.toFixed(0)+'</div></div></div><div class="adv"><strong>BTCUSDT 參數</strong>（與上方同一套）<table><tr><td>方向</td><td><b>'+p.direction+'</b></td></tr><tr><td>槓桿</td><td><b>'+p.leverage+'x</b></td></tr><tr><td>進場</td><td>$'+p.entry.toFixed(2)+'</td></tr><tr><td>停損</td><td>$'+p.sl.toFixed(2)+'</td></tr><tr><td>停利1</td><td>$'+p.tp1.toFixed(2)+'</td></tr><tr><td>停利2</td><td>$'+p.tp2.toFixed(2)+'</td></tr></table><div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"><button class="rbtn" style="margin:0;border-color:var(--a);color:var(--a)" onclick="openBn()">① 開啟幣安</button><button class="rbtn" style="margin:0" onclick="copyP()">② 複製參數</button><button class="rbtn" style="margin:0" onclick="copyP(\'entry\')">進場</button><button class="rbtn" style="margin:0" onclick="copyP(\'sl\')">停損</button></div><p class="st" style="margin-top:8px">參數需在幣安手動填入</p></div>';st.className='st live';st.textContent='CoinGecko · '+(days>7?'日K':'4h K')+' · '+oh.length+' 根原始 · '+new Date().toLocaleString('zh-TW')}catch(e){st.textContent='失敗：'+(e.message||e);body.innerHTML='<p class="loading">'+(e.message||e)+'</p>'}}
-async function loadK(){const L=document.getElementById('kL'),C=document.getElementById('kC'),G=document.getElementById('kG');L.style.display='block';C.style.display='none';try{await ensure();if(master.length<80){try{await sleep(800);const longer=await fetchApi(90);if(longer.length>master.length)master=longer}catch(e){}}const periods=[{d:7,l:'7天'},{d:30,l:'30天'},{d:90,l:'90天'},{d:180,l:'半年'},{d:365,l:'1年'}];const span=(master[master.length-1].time-master[0].time)/86400;let h='';periods.forEach(p=>{const oh=slice(master,p.d);if(oh.length<5){h+='<div class="kcard"><h4>'+p.l+' <span class="rec rh">資料不足</span></h4><div class="meta">快取約 '+Math.round(span)+' 天</div></div>';return}const cl=oh.map(x=>x.c),first=cl[0],last=cl[cl.length-1],ret=((last-first)/first)*100,high=Math.max(...oh.map(x=>x.h)),low=Math.min(...oh.map(x=>x.l)),pos=(last-low)/(high-low||1);let rec='持有觀望',rc='rh';if(ret>8&&pos<0.7){rec='偏多可留意';rc='rb'}else if(ret<-8||pos>0.85){rec='偏慎';rc='rw'}const note=p.d>span+5?'（實際約'+Math.round(span)+'天）':'';h+='<div class="kcard"><h4>'+p.l+' <span class="rec '+rc+'">'+rec+'</span></h4><div class="meta">漲跌 '+(ret>=0?'+':'')+ret.toFixed(1)+'% · 位置 '+(pos*100).toFixed(0)+'%'+note+'</div><div class="meta">高 $'+high.toFixed(0)+' · 低 $'+low.toFixed(0)+' · 收 $'+last.toFixed(0)+'</div></div>'});G.innerHTML=h;L.style.display='none';C.style.display='block'}catch(e){L.innerHTML='失敗：'+(e.message||e)+' <button class="rbtn" onclick="loadK()">重試</button>'}}
+async function loadPanel(){const st=document.getElementById('pst'),body=document.getElementById('body');st.className='st';st.textContent='載入中…';try{const oh=await getDays(days);if(!oh.length)throw new Error('無K線');renderCandle(oh);const p=plan(oh);if(!p)throw new Error('資料不足');lastPlan=p;renderDash(signals(p));body.innerHTML='<div class="grid"><div class="box"><div class="l">最新</div><div class="v">$'+p.last.toLocaleString(undefined,{maximumFractionDigits:0})+'</div></div><div class="box"><div class="l">RSI</div><div class="v">'+(p.lastRsi!=null?p.lastRsi.toFixed(1):'—')+'</div></div><div class="box"><div class="l">ATR</div><div class="v">$'+p.lastAtr.toFixed(0)+'</div></div></div><div class="adv"><strong>BTCUSDT 參數</strong>（與上方同一套）<table><tr><td>方向</td><td><b>'+p.direction+'</b></td></tr><tr><td>槓桿</td><td><b>'+p.leverage+'x</b></td></tr><tr><td>進場</td><td>$'+p.entry.toFixed(2)+'</td></tr><tr><td>停損</td><td>$'+p.sl.toFixed(2)+'</td></tr><tr><td>停利1</td><td>$'+p.tp1.toFixed(2)+'</td></tr><tr><td>停利2</td><td>$'+p.tp2.toFixed(2)+'</td></tr></table><div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"><button class="rbtn" style="margin:0;border-color:var(--a);color:var(--a)" onclick="openBn()">① 開啟幣安</button><button class="rbtn" style="margin:0" onclick="copyP()">② 複製參數</button><button class="rbtn" style="margin:0" onclick="copyP(\'entry\')">進場</button><button class="rbtn" style="margin:0" onclick="copyP(\'sl\')">停損</button></div><p class="st" style="margin-top:8px">參數需在幣安手動填入</p></div>';st.className='st live';st.textContent='CoinGecko · '+(days>7?'日K':'4h K')+' · 約 '+oh.length+' 根 · 區間 '+days+' 天 · '+new Date().toLocaleString('zh-TW')}catch(e){st.textContent='失敗：'+(e.message||e);body.innerHTML='<p class="loading">'+(e.message||e)+'</p>'}}
+async function loadK(){const L=document.getElementById('kL'),C=document.getElementById('kC'),G=document.getElementById('kG');L.style.display='block';C.style.display='none';try{await ensure();if(master.length<200){try{await sleep(600);const longer=await fetchApi(365);if(longer&&longer.length>master.length)master=longer}catch(e){try{const longer=await fetchApi(180);if(longer&&longer.length>master.length)master=longer}catch(e2){}}}const periods=[{d:7,l:'7天'},{d:30,l:'30天'},{d:90,l:'90天'},{d:180,l:'半年'},{d:365,l:'1年'}];const span=(master[master.length-1].time-master[0].time)/86400;let h='';periods.forEach(p=>{const oh=slice(master,p.d);if(oh.length<5){h+='<div class="kcard"><h4>'+p.l+' <span class="rec rh">資料不足</span></h4><div class="meta">快取約 '+Math.round(span)+' 天</div></div>';return}const cl=oh.map(x=>x.c),first=cl[0],last=cl[cl.length-1],ret=((last-first)/first)*100,high=Math.max(...oh.map(x=>x.h)),low=Math.min(...oh.map(x=>x.l)),pos=(last-low)/(high-low||1);let rec='持有觀望',rc='rh';if(ret>8&&pos<0.7){rec='偏多可留意';rc='rb'}else if(ret<-8||pos>0.85){rec='偏慎';rc='rw'}const note=p.d>span+5?'（實際約'+Math.round(span)+'天）':'';h+='<div class="kcard"><h4>'+p.l+' <span class="rec '+rc+'">'+rec+'</span></h4><div class="meta">漲跌 '+(ret>=0?'+':'')+ret.toFixed(1)+'% · 位置 '+(pos*100).toFixed(0)+'%'+note+'</div><div class="meta">高 $'+high.toFixed(0)+' · 低 $'+low.toFixed(0)+' · 收 $'+last.toFixed(0)+'</div></div>'});G.innerHTML=h;L.style.display='none';C.style.display='block'}catch(e){L.innerHTML='失敗：'+(e.message||e)+' <button class="rbtn" onclick="loadK()">重試</button>'}}
 document.querySelectorAll('#pbtns button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#pbtns button').forEach(x=>x.classList.remove('on'));b.classList.add('on');days=+b.dataset.d;loadPanel()}));
 loadSpot();setTimeout(loadPanel,500);setTimeout(loadK,1500);
 </script>
