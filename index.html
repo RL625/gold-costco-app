@@ -6,17 +6,18 @@
 <title>金脈終端 GoldVein</title>
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
-Promise.all([fetch('./g0.b64?v=2').then(r=>{if(!r.ok)throw new Error('g0 '+r.status);return r.text()}),fetch('./g1.b64?v=2').then(r=>{if(!r.ok)throw new Error('g1 '+r.status);return r.text()})]).then(function(parts){
+Promise.all([
+  fetch('./gc0.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc0 '+r.status);return r.text()}),
+  fetch('./gc1.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc1 '+r.status);return r.text()}),
+  fetch('./gc2.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc2 '+r.status);return r.text()}),
+  fetch('./gc3.b64?v=3').then(r=>{if(!r.ok)throw new Error('gc3 '+r.status);return r.text()})
+]).then(function(parts){
   var b64 = parts.join('');
   var bin = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
   var html = pako.ungzip(bin, {to: 'string'});
-  document.open();
-  document.write(html);
-  document.close();
+  document.open(); document.write(html); document.close();
 }).catch(function(e){
-  document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7">載入失敗：' +
-    (e && e.message ? e.message : e) +
-    '<br><br><a style="color:#d4af37" href="./btc/">鏈脈終端（比特幣）</a></p>';
+  document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7">載入失敗：'+(e&&e.message?e.message:e)+'<br><a style="color:#d4af37" href="./btc/">鏈脈終端</a></p>';
 });
 </script>
 </head>
