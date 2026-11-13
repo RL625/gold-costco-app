@@ -5,16 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>金脈終端 GoldVein</title>
 <link rel="canonical" href="https://rl625.github.io/gold-costco-app/"/>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
 var SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/index.html';
 var PAXG_SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/paxg-futures.js';
 Promise.all([
   fetch(SRC).then(function(r){ if(!r.ok) throw new Error('page '+r.status); return r.text(); }),
   fetch(PAXG_SRC).then(function(r){ if(!r.ok) throw new Error('paxg '+r.status); return r.text(); }),
-  fetch('./crp1.js?v=6').then(function(r){ if(!r.ok) throw new Error('crp1 '+r.status); return r.text(); }),
-  fetch('./crp2.js?v=6').then(function(r){ if(!r.ok) throw new Error('crp2 '+r.status); return r.text(); })
+  fetch('./crp.b64?v=7').then(function(r){ if(!r.ok) throw new Error('crp '+r.status); return r.text(); })
 ]).then(function(pair){
-  var html = pair[0], paxg = pair[1], patch = pair[2] + pair[3];
+  var html = pair[0], paxg = pair[1];
+  var bin = Uint8Array.from(atob(pair[2].trim()), function(c){ return c.charCodeAt(0); });
+  var patch = pako.ungzip(bin, { to: 'string' });
   paxg = paxg.replace(
     /const INTERVAL_MAP = \{[^}]+\};/,
     "const INTERVAL_MAP = { '7': '4h', '14': '1d', '30': '1d', '90': '1d', '180': '1d', '365': '1d', '2000': '1w' };"
