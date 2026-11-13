@@ -1,1 +1,58 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>金脈終端 GoldVein</title>
+<link rel="canonical" href="https://rl625.github.io/gold-costco-app/"/>
+<script>
+var SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/index.html';
+var PAXG_SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@859b55d/paxg-futures.js';
+var PATCH_SRC = './chart-render-patch.js?v=5';
+Promise.all([
+  fetch(SRC).then(function(r){ if(!r.ok) throw new Error('page '+r.status); return r.text(); }),
+  fetch(PAXG_SRC).then(function(r){ if(!r.ok) throw new Error('paxg '+r.status); return r.text(); }),
+  fetch(PATCH_SRC).then(function(r){ if(!r.ok) throw new Error('patch '+r.status); return r.text(); })
+]).then(function(pair){
+  var html = pair[0], paxg = pair[1], patch = pair[2];
+  paxg = paxg.replace(
+    /const INTERVAL_MAP = \{[^}]+\};/,
+    "const INTERVAL_MAP = { '7': '4h', '14': '1d', '30': '1d', '90': '1d', '180': '1d', '365': '1d', '2000': '1w' };"
+  );
+  paxg = paxg.replace(
+    /const LIMIT_MAP = \{[^}]+\};/,
+    "const LIMIT_MAP = { '7': 42, '14': 14, '30': 30, '90': 90, '180': 180, '365': 365, '2000': 200 };"
+  );
+  if (paxg.indexOf('function bollinger') < 0) {
+    paxg = paxg.replace('function sma(arr, n)', patch.split('async function renderCandle')[0] + 'function sma(arr, n)');
+  }
+  paxg = paxg.replace(/async function renderCandle\(containerId, days, ohlcData\)[\s\S]*?(?=function lightClass)/, 'async function renderCandle' + patch.split('async function renderCandle')[1] + '\n  ');
+  var blobUrl = URL.createObjectURL(new Blob([paxg], { type: 'application/javascript' }));
+  html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/RL625\/gold-costco-app@[^"' ]+\/paxg-futures\.js[^"' ]*/g, blobUrl);
+  html = html.replace(/src="\.\/paxg-futures\.js[^"]*"/g, 'src="'+blobUrl+'"');
+  html = html.replace(
+    /<div class="period-btns" id="paxgPeriodBtns">[\s\S]*?<\/div>/,
+    '<div class="period-btns" id="paxgPeriodBtns">' +
+    '<button data-days="7">7天 · 4H</button>' +
+    '<button data-days="14">14天 · 日線</button>' +
+    '<button class="active" data-days="30">30天 · 日線</button>' +
+    '<button data-days="90">90天 · 日線</button>' +
+    '<button data-days="180">半年 · 日線</button>' +
+    '<button data-days="365">1年 · 日線</button>' +
+    '</div>'
+  );
+  if (html.indexOf('height: 340px') < 0) {
+    html = html.replace('</style>', '.chart-wrap{height:340px!important;min-height:340px}\n</style>');
+  }
+  html = html.replace(/href="btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
+  html = html.replace(/href="\.\/btc\/"/g, 'href="https://rl625.github.io/gold-costco-app/btc/"');
+  document.open();
+  document.write(html);
+  document.close();
+}).catch(function(e){
+  document.body.innerHTML = '<div style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7"><h1 style="color:#d4af37">金脈終端</h1><p>載入失敗：'+(e&&e.message?e.message:e)+'</p><p><a style="color:#d4af37" href="https://rl625.github.io/gold-costco-app/btc/">鏈脈終端</a></p></div>';
+});
+</script>
+</head>
+<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端（K線指標＋日線）…</body>
+</html>
