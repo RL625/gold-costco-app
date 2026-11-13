@@ -3,10 +3,24 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>鏈脈終端</title>
+<title>鏈脈終端 ChainVein</title>
 <script>
-// 自完整可用 commit 載入後再套用本機增強
-const SRC='https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@1302652/btc/index.html';
-fetch(SRC).then(r=>r.text()).then(html=>{
-  // 注入新順序標記與試算區塊的輕量腳本
-  const inject = `\n<script>(function(){\n  function restyle(){\n    const hs=[...document.querySelectorAll('h2')];\n    hs.forEach(h=>{\n      const t=h.textContent||'';\n      if(t.includes('即時比特幣')&&!t.includes('①'))h.childNodes[0].textContent='① 📈 即時比特幣 ';\n      if(t.includes('各週期')&&!t.includes('②'))h.childNodes[0].textContent='② 📊 多週期趨勢總覽 ';\n      if((t.includes('儀表板')||t.includes('BTCUSDT'))&&!t.includes('③'))h.childNodes[0].textContent='③ 📉 合約開單儀表板（BTCUSDT） ';\n    });\n    // 調整區塊順序：多週期提到儀表板前\n    const cards=[...document.querySelectorAll('.card')];\n    if(cards.length>=3){\n      const spot=cards[0], dash=cards[1], k=cards[2];\n      const parent=spot.parentNode;\n      if(dash&&k&&parent){parent.insertBefore(k,dash);}\n    }\n  }\n  setTimeout(restyle,300);\n  setTimeout(restyle,1200);\n})();<\/script>`;\n  document.open();\n  document.write(html.replace('</body>', inject+'</body>'));\n  document.close();\n}).catch(e=>{\n  document.body.innerHTML='<p style="color:#fff;font-family:sans-serif;padding:20px">載入失敗，請開啟 <a href="'+SRC+'" style="color:#f7931a">備用連結</a></p>';\n});\n</script>\n</head>\n<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端…</body>\n</html>
+// 從本站最新部署載入完整應用（不再依賴 jsDelivr / 舊 commit）
+const SRC = './app.html?v=' + Date.now();
+fetch(SRC)
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+  .then(function(html){
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(function(e){
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0c0f14;color:#e8eef7">載入失敗：' +
+      (e && e.message ? e.message : e) +
+      '<br><br><a style="color:#f7931a" href="./app.html">直接開啟 app.html</a>' +
+      '<br><a style="color:#f7931a" href="../">金脈終端（黃金）</a></p>';
+  });
+</script>
+</head>
+<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端最新版…</body>
+</html>

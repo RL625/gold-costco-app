@@ -3,18 +3,24 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>金脈終端</title>
+<title>金脈終端 GoldVein</title>
 <script>
-const SRC='https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@a691d3b/index.html';
-fetch(SRC).then(r=>r.text()).then(html=>{
-  const inject = `\n<script>(function(){\n  function go(){\n    var cards=[].slice.call(document.querySelectorAll('.card'));\n    if(cards.length>=4){\n      var spot=cards[0], paxg=cards[1], k=cards[2], costco=cards[3];\n      var parent=spot.parentNode;\n      if(parent && k && paxg) parent.insertBefore(k, paxg);\n    }\n    [].forEach.call(document.querySelectorAll('h2'), function(h){\n      var t=h.textContent||'';\n      if(t.indexOf('即時國際')>=0 && t.indexOf('①')<0) h.innerHTML=h.innerHTML.replace(/^[\\s\\S]*?(<button|$)/, '① 📈 即時國際金價 $1');\n      if((t.indexOf('K線')>=0||t.indexOf('週期分析')>=0) && t.indexOf('②')<0) h.innerHTML=h.innerHTML.replace(/^[\\s\\S]*?(<button|$)/, '② 📊 多週期趨勢總覽 $1');\n      if((t.indexOf('PAXG')>=0||t.indexOf('合約')>=0) && t.indexOf('③')<0) h.innerHTML=h.innerHTML.replace(/^[\\s\\S]*?(<button|$)/, '③ 📉 合約開單儀表板 $1');\n      if(t.indexOf('好市多')>=0 && t.indexOf('④')<0) h.innerHTML=h.innerHTML.replace(/^[\\s\\S]*?(<button|$)/, '④ 🛒 好市多實體金 $1');\n    });\n    if(!document.getElementById('posOut')){\n      var sec=document.getElementById('paxgSection')||document.querySelectorAll('.card')[2];\n      if(sec){\n        var box=document.createElement('div');\n        box.style.cssText='margin-top:12px;padding:12px;border:1px solid rgba(212,175,55,.35);border-radius:10px;background:rgba(212,175,55,.08)';\n        box.innerHTML='<strong style="color:#e8eef7">倉位風險試算</strong><p style="font-size:0.8rem;color:#8b9bb4;margin:6px 0">帳戶權益與單筆風險％（搭配合約停損距離）</p><label style="display:block;font-size:0.78rem;color:#8b9bb4">帳戶權益 USDT</label><input id="eqIn" type="number" value="1000" style="max-width:220px;padding:8px;border-radius:8px;border:1px solid #2a3340;background:#0f1419;color:#e8eef7"/><label style="display:block;font-size:0.78rem;color:#8b9bb4;margin-top:8px">單筆風險 %</label><input id="riskIn" type="number" value="1" step="0.1" style="max-width:220px;padding:8px;border-radius:8px;border:1px solid #2a3340;background:#0f1419;color:#e8eef7"/><div id="posOut" style="margin-top:10px;font-size:0.9rem;color:#e8eef7">請先載入合約儀表板參數</div>';\n        sec.appendChild(box);\n      }\n    }\n  }\n  setTimeout(go,600); setTimeout(go,2000);\n})();<\\/script>`;
-  document.open();
-  document.write(html.replace('</body>', inject+'</body>'));
-  document.close();
-}).catch(function(e){
-  document.body.innerHTML='<p style="color:#fff;padding:20px">載入失敗 <a style="color:#d4af37" href="'+SRC+'">備用連結</a></p>';
-});
+// 從本站最新部署載入完整應用（不再依賴 jsDelivr / 舊 commit）
+const SRC = './app.html?v=' + Date.now();
+fetch(SRC)
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+  .then(function(html){
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(function(e){
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7">載入失敗：' +
+      (e && e.message ? e.message : e) +
+      '<br><br><a style="color:#d4af37" href="./app.html">直接開啟 app.html</a>' +
+      '<br><a style="color:#d4af37" href="./btc/">鏈脈終端（比特幣）</a></p>';
+  });
 </script>
 </head>
-<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端…</body>
+<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端最新版…</body>
 </html>
