@@ -13,85 +13,29 @@ Promise.all([
 ]).then(function(pair){
   var html = pair[0];
   var NEW_DATA = pair[1];
-  // 資料源：Coinbase 優先
   html = html.replace(/function norm\(raw\)\{[\s\S]*?async function getDays\(d\)\{[\s\S]*?\n\}/, NEW_DATA);
   html = html.replace(/if\(oh\.length<5\)/g, 'if(oh.length<2)');
   html = html.replace(/CoinGecko · /g, 'BTC資料 · ');
+  html = html.replace(/>市值</g, '>資料來源<');
   html = html.replace(/href="\.\.\/"/g, 'href="https://rl625.github.io/gold-costco-app/"');
 
-  // 標題與副標對齊金脈
-  html = html.replace(/<h1>[\s\S]*?<\/h1>/, '<h1>₿ 鏈脈終端 ChainVein</h1>');
+  // 修正即時價：Coinbase 現價為準
   html = html.replace(
-    /📈 即時比特幣/,
-    '① 📈 即時比特幣'
-  );
-  html = html.replace(
-    /📉 BTCUSDT 儀表板/,
-    '③ 📉 BTCUSDT 合約開單儀表板'
-  );
-  html = html.replace(
-    /📊 各週期分析/,
-    '② 📊 多週期趨勢分析'
+    /async function loadSpot\(\)\{[\s\S]*?catch\(e\)\{L\.textContent='載入失敗：'\+\(e\.message\|\|e\)\}\}/,
+    "async function loadSpot(){const L=document.getElementById('spotL'),C=document.getElementById('spotC');L.style.display='block';C.style.display='none';try{let usd=null,twd=null,chg=null,src='';try{const sp=await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot').then(function(r){return r.json()});const er=await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC').then(function(r){return r.json()});usd=parseFloat(sp&&sp.data&&sp.data.amount);if(er&&er.data&&er.data.rates){twd=parseFloat(er.data.rates.TWD);if(!(usd>0))usd=parseFloat(er.data.rates.USD)}src='Coinbase'}catch(e1){}if(!(usd>0)){const res=await fetch(CG+'/simple/price?ids=bitcoin&vs_currencies=usd,twd&include_24hr_change=true');if(!res.ok)throw new Error('HTTP '+res.status);const b=(await res.json()).bitcoin;usd=b.usd;twd=b.twd;chg=b.usd_24h_change;src='CoinGecko'}if(!(usd>0))throw new Error('無有效報價');if(!(twd>0))twd=usd*32.8;document.getElementById('pUsd').textContent='$'+usd.toLocaleString('en-US',{maximumFractionDigits:0});document.getElementById('pTwd').textContent='NT$'+Math.round(twd).toLocaleString();document.getElementById('pM').textContent=src;document.getElementById('cUsd').innerHTML=chg!=null?('<span class=\"'+(chg>=0?'up':'dn')+'\">24h '+(chg>=0?'+':'')+Number(chg).toFixed(2)+'%</span>'):'<span class=\"st\">即時現貨</span>';document.getElementById('cTwd').innerHTML='≈ '+(twd/usd).toFixed(2)+' TWD/USD';document.getElementById('upd').textContent=src+' · '+new Date().toLocaleString('zh-TW');L.style.display='none';C.style.display='block'}catch(e){L.textContent='載入失敗：'+(e.message||e)}}"
   );
 
-  // 週期按鈕標註日線
+  html = html.replace(/<h1>[\s\S]*?<\/h1>/, '<h1>₿ 鏈脈終端 ChainVein</h1>');
+  html = html.replace(/📈 即時比特幣/, '① 📈 即時比特幣');
+  html = html.replace(/📉 BTCUSDT 儀表板/, '③ 📉 BTCUSDT 合約開單儀表板');
+  html = html.replace(/📊 各週期分析/, '② 📊 多週期趨勢分析');
   html = html.replace(
     /<div class="btns" id="pbtns">[\s\S]*?<\/div>/,
-    '<div class="btns" id="pbtns">' +
-    '<button data-d="7">7天·4H</button>' +
-    '<button data-d="14">14天·日線</button>' +
-    '<button data-d="30">30天·日線</button>' +
-    '<button class="on" data-d="90">90天·日線</button>' +
-    '<button data-d="180">半年·日線</button>' +
-    '<button data-d="365">1年·日線</button>' +
-    '</div>'
+    '<div class="btns" id="pbtns"><button data-d="7">7天·4H</button><button data-d="14">14天·日線</button><button data-d="30">30天·日線</button><button class="on" data-d="90">90天·日線</button><button data-d="180">半年·日線</button><button data-d="365">1年·日線</button></div>'
   );
 
-  // 注入金脈風格 CSS + 載入後重排卡片：現貨 → 多週期 → 合約
-  var polish = '<style>\n' +
-    'body{background:#0f1419!important;color:#e8eef7;font-family:system-ui,-apple-system,sans-serif}\n' +
-    '.card{background:#1a2332;border:1px solid #2d3a4f;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.25)}\n' +
-    'header{text-align:center;padding:20px 0 12px;border-bottom:1px solid #2d3a4f;margin-bottom:8px}\n' +
-    'header h1{font-size:clamp(1.4rem,4vw,1.8rem);background:linear-gradient(135deg,#f7931a,#ffd9a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}\n' +
-    'h2{font-size:1.05rem;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}\n' +
-    '.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}\n' +
-    '.price-box{background:#0f1419;border:1px solid #2d3a4f;border-radius:12px;padding:12px}\n' +
-    '.price-box .label{font-size:.75rem;color:#8b9bb4}\n' +
-    '.price-box .value{font-size:1.25rem;font-weight:700;color:#f7931a;margin:4px 0}\n' +
-    '.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}\n' +
-    '.btns button{background:transparent;border:1px solid #2d3a4f;color:#8b9bb4;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.85rem}\n' +
-    '.btns button.on,.btns button:hover{background:#f7931a;color:#0f1419;border-color:#f7931a;font-weight:600}\n' +
-    '#candle{height:340px!important;min-height:340px;border-radius:12px;overflow:hidden;background:#0f1419}\n' +
-    '#kG{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}\n' +
-    '.kcard{background:#0f1419;border:1px solid #2d3a4f;border-radius:12px;padding:14px}\n' +
-    '.rbtn{background:transparent;border:1px solid #2d3a4f;color:#8b9bb4;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}\n' +
-    '.rbtn:hover{border-color:#f7931a;color:#f7931a}\n' +
-    '.st{font-size:.8rem;color:#8b9bb4}\n' +
-    'a{color:#f7931a}\n' +
-    '</style>\n<script>(function(){\n' +
-    'function reorder(){\n' +
-    '  var cards=[].slice.call(document.querySelectorAll(".card"));\n' +
-    '  if(cards.length<3)return;\n' +
-    '  var spot=null,dash=null,k=null;\n' +
-    '  cards.forEach(function(c){\n' +
-    '    var t=(c.querySelector("h2")||{}).textContent||"";\n' +
-    '    if(t.indexOf("即時")>=0||t.indexOf("①")>=0)spot=c;\n' +
-    '    else if(t.indexOf("週期")>=0||t.indexOf("②")>=0||t.indexOf("分析")>=0)k=c;\n' +
-    '    else if(t.indexOf("合約")>=0||t.indexOf("儀表")>=0||t.indexOf("③")>=0||t.indexOf("BTC")>=0)dash=c;\n' +
-    '  });\n' +
-    '  if(spot&&k&&dash&&spot.parentNode){\n' +
-    '    var p=spot.parentNode;\n' +
-    '    p.insertBefore(spot,p.firstChild);\n' +
-    '    if(spot.nextSibling!==k) p.insertBefore(k,spot.nextSibling);\n' +
-    '    if(k.nextSibling!==dash) p.insertBefore(dash,k.nextSibling);\n' +
-    '  }\n' +
-    '  var h=document.querySelector("header p");\n' +
-    '  if(h&&h.textContent.indexOf("比特幣")<0) h.textContent="比特幣現貨 · 多週期分析 · BTCUSDT 合約儀表板（版面比照金脈，無好市多）";\n' +
-    '}\n' +
-    'setTimeout(reorder,300);setTimeout(reorder,1200);\n' +
-    '})();<\/script>';
+  var polish = '<style>body{background:#0f1419!important;color:#e8eef7;font-family:system-ui,sans-serif}.card{background:#1a2332;border:1px solid #2d3a4f;border-radius:16px;padding:18px;margin:14px 0}header{text-align:center;padding:20px 0 12px;border-bottom:1px solid #2d3a4f}header h1{font-size:clamp(1.4rem,4vw,1.8rem);background:linear-gradient(135deg,#f7931a,#ffd9a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.price-box{background:#0f1419;border:1px solid #2d3a4f;border-radius:12px;padding:12px}.price-box .value{font-size:1.25rem;font-weight:700;color:#f7931a}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.btns button{background:transparent;border:1px solid #2d3a4f;color:#8b9bb4;padding:8px 14px;border-radius:999px;cursor:pointer}.btns button.on{background:#f7931a;color:#0f1419;border-color:#f7931a;font-weight:600}#candle{height:340px!important;min-height:340px;border-radius:12px;background:#0f1419}#kG{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.kcard{background:#0f1419;border:1px solid #2d3a4f;border-radius:12px;padding:14px}.rbtn{background:transparent;border:1px solid #2d3a4f;color:#8b9bb4;padding:6px 12px;border-radius:8px;cursor:pointer}a{color:#f7931a}</style><script>(function(){function reorder(){var cards=[].slice.call(document.querySelectorAll(".card"));if(cards.length<3)return;var spot=null,dash=null,k=null;cards.forEach(function(c){var t=(c.querySelector("h2")||{}).textContent||"";if(t.indexOf("即時")>=0||t.indexOf("①")>=0)spot=c;else if(t.indexOf("週期")>=0||t.indexOf("②")>=0||t.indexOf("分析")>=0)k=c;else if(t.indexOf("合約")>=0||t.indexOf("儀表")>=0||t.indexOf("③")>=0||t.indexOf("BTC")>=0)dash=c});if(spot&&k&&dash&&spot.parentNode){var p=spot.parentNode;p.insertBefore(spot,p.firstChild);if(spot.nextSibling!==k)p.insertBefore(k,spot.nextSibling);if(k.nextSibling!==dash)p.insertBefore(dash,k.nextSibling)}}setTimeout(reorder,300);setTimeout(reorder,1200)})();<\/script>';
 
-  // K線指標
   var enhance = '<script>(function(){function sma(a,n){var o=Array(a.length).fill(null),s=0;for(var i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}function boll(closes,n,k){n=n||20;k=k||2;var mid=sma(closes,n),up=Array(closes.length).fill(null),lo=Array(closes.length).fill(null);for(var i=n-1;i<closes.length;i++){if(mid[i]==null)continue;var s=0;for(var j=i-n+1;j<=i;j++)s+=(closes[j]-mid[i])*(closes[j]-mid[i]);var sd=Math.sqrt(s/n);up[i]=mid[i]+k*sd;lo[i]=mid[i]-k*sd}return{mid:mid,upper:up,lower:lo}}window.renderCandle=function(oh){var el=document.getElementById("candle");if(!el||typeof LightweightCharts==="undefined")return;el.innerHTML="";var leg=document.getElementById("btcChartLegend");if(!leg){leg=document.createElement("div");leg.id="btcChartLegend";leg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;font-size:0.75rem;color:#8b9bb4;margin:6px 0";el.parentNode.insertBefore(leg,el)}var isDaily=(typeof days==="undefined"||days>7);leg.innerHTML="<span style=\"color:#e8eef7\">● K線（"+(isDaily?"日K":"4H")+"）</span><span style=\"color:#60a5fa\">— MA7</span><span style=\"color:#f7931a\">— MA20</span><span style=\"color:#f97316\">— MA50</span><span style=\"color:#a78bfa\">— 布林帶</span>";var useDaily=isDaily||(oh&&oh.length>48);function dayKey(ts){var d=new Date(ts*1000);return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0")}var bars;if(useDaily){var map={};(oh||[]).forEach(function(x){var k=dayKey(x.time);if(!map[k])map[k]={time:k,open:x.o,high:x.h,low:x.l,close:x.c};else{var b=map[k];b.high=Math.max(b.high,x.h);b.low=Math.min(b.low,x.l);b.close=x.c}});bars=Object.keys(map).sort().map(function(k){return map[k]})}else{var seen={},u=[];(oh||[]).map(function(x){return{time:x.time,open:x.o,high:x.h,low:x.l,close:x.c}}).sort(function(a,b){return a.time-b.time}).forEach(function(d){if(!seen[d.time]){seen[d.time]=1;u.push(d)}});bars=u}if(!bars||!bars.length){el.innerHTML="<p class=\"loading\">無圖表資料</p>";return}var w=Math.max(el.clientWidth||320,280);var ch=LightweightCharts.createChart(el,{width:w,height:320,layout:{background:{color:"#1a2332"},textColor:"#8b9bb4"},grid:{vertLines:{color:"rgba(45,58,79,.5)"},horzLines:{color:"rgba(45,58,79,.5)"}},rightPriceScale:{borderColor:"#2d3a4f"},timeScale:{borderColor:"#2d3a4f",timeVisible:!useDaily,secondsVisible:false},crosshair:{mode:0}});ch.addCandlestickSeries({upColor:"#22c55e",downColor:"#ef4444",borderUpColor:"#22c55e",borderDownColor:"#ef4444",wickUpColor:"#22c55e",wickDownColor:"#ef4444"}).setData(bars);var closes=bars.map(function(b){return b.close});function ld(arr){var o=[];for(var i=0;i<bars.length;i++)if(arr[i]!=null)o.push({time:bars[i].time,value:arr[i]});return o}var m7=sma(closes,Math.min(7,closes.length)),m20=sma(closes,Math.min(20,closes.length)),m50=sma(closes,Math.min(50,closes.length)),bb=boll(closes,Math.min(20,closes.length),2);ch.addLineSeries({color:"#60a5fa",lineWidth:1,priceLineVisible:false,lastValueVisible:true}).setData(ld(m7));ch.addLineSeries({color:"#f7931a",lineWidth:2,priceLineVisible:false,lastValueVisible:true}).setData(ld(m20));ch.addLineSeries({color:"#f97316",lineWidth:2,priceLineVisible:false,lastValueVisible:true}).setData(ld(m50));ch.addLineSeries({color:"rgba(167,139,250,0.7)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.upper));ch.addLineSeries({color:"rgba(148,163,184,0.45)",lineWidth:1,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.mid));ch.addLineSeries({color:"rgba(167,139,250,0.7)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.lower));ch.timeScale().fitContent();window.chart=ch;setTimeout(function(){if(ch&&el.clientWidth)ch.applyOptions({width:el.clientWidth});ch.timeScale().fitContent()},200)}})();<\/script>';
 
   html = html.replace('</head>', polish + '</head>');
