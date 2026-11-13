@@ -4,22 +4,20 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>金脈終端 GoldVein</title>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
-(function(){
-  var v = Date.now();
-  Promise.all([
-    fetch('./app.part1.html?v=' + v).then(function(r){ if(!r.ok) throw new Error('part1 '+r.status); return r.text(); }),
-    fetch('./app.part2.html?v=' + v).then(function(r){ if(!r.ok) throw new Error('part2 '+r.status); return r.text(); })
-  ]).then(function(parts){
-    document.open();
-    document.write(parts[0] + parts[1]);
-    document.close();
-  }).catch(function(e){
-    document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7">載入失敗：' +
-      (e && e.message ? e.message : e) +
-      '<br><br><a style="color:#d4af37" href="./btc/">鏈脈終端（比特幣）</a></p>';
-  });
-})();
+Promise.all([fetch('./g0.b64?v=2').then(r=>{if(!r.ok)throw new Error('g0 '+r.status);return r.text()}),fetch('./g1.b64?v=2').then(r=>{if(!r.ok)throw new Error('g1 '+r.status);return r.text()})]).then(function(parts){
+  var b64 = parts.join('');
+  var bin = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
+  var html = pako.ungzip(bin, {to: 'string'});
+  document.open();
+  document.write(html);
+  document.close();
+}).catch(function(e){
+  document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7">載入失敗：' +
+    (e && e.message ? e.message : e) +
+    '<br><br><a style="color:#d4af37" href="./btc/">鏈脈終端（比特幣）</a></p>';
+});
 </script>
 </head>
 <body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入金脈終端最新部署…</body>
