@@ -1,1 +1,45 @@
-LOADER_PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>鏈脈終端 ChainVein</title>
+<link rel="canonical" href="https://rl625.github.io/gold-costco-app/btc/"/>
+<script>
+var SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@1302652/btc/index.html';
+Promise.all([
+  fetch(SRC).then(function(r){ if(!r.ok) throw new Error('app '+r.status); return r.text(); }),
+  fetch('./btc-data-block.js?v=3').then(function(r){ if(!r.ok) throw new Error('data '+r.status); return r.text(); })
+]).then(function(pair){
+  var html = pair[0];
+  var NEW_DATA = pair[1];
+  html = html.replace(
+    /function norm\(raw\)\{[\s\S]*?async function getDays\(d\)\{[\s\S]*?\n\}/,
+    NEW_DATA
+  );
+  html = html.replace(/if\(oh\.length<5\)/g, 'if(oh.length<2)');
+  html = html.replace(
+    /<div class="btns" id="pbtns">[\s\S]*?<\/div>/,
+    '<div class="btns" id="pbtns">' +
+    '<button data-d="7">7天·4H</button>' +
+    '<button data-d="14">14天·日線</button>' +
+    '<button data-d="30">30天·日線</button>' +
+    '<button class="on" data-d="90">90天·日線</button>' +
+    '<button data-d="180">半年·日線</button>' +
+    '<button data-d="365">1年·日線</button>' +
+    '</div>'
+  );
+  html = html.replace(/href="\.\.\/"/g, 'href="https://rl625.github.io/gold-costco-app/"');
+  html = html.replace(/CoinGecko · /g, 'BTC資料 · ');
+  var enhance = '<script>(function(){function sma(a,n){var o=Array(a.length).fill(null),s=0;for(var i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}function boll(closes,n,k){n=n||20;k=k||2;var mid=sma(closes,n),up=Array(closes.length).fill(null),lo=Array(closes.length).fill(null);for(var i=n-1;i<closes.length;i++){if(mid[i]==null)continue;var s=0;for(var j=i-n+1;j<=i;j++)s+=(closes[j]-mid[i])*(closes[j]-mid[i]);var sd=Math.sqrt(s/n);up[i]=mid[i]+k*sd;lo[i]=mid[i]-k*sd}return{mid:mid,upper:up,lower:lo}}window.renderCandle=function(oh){var el=document.getElementById("candle");if(!el||typeof LightweightCharts==="undefined")return;el.innerHTML="";var leg=document.getElementById("btcChartLegend");if(!leg){leg=document.createElement("div");leg.id="btcChartLegend";leg.style.cssText="display:flex;flex-wrap:wrap;gap:10px;font-size:0.75rem;color:#8b9bb4;margin:6px 0";el.parentNode.insertBefore(leg,el)}var isDaily=(typeof days==="undefined"||days>7);leg.innerHTML="<span style=\"color:#e8eef7\">● K線（"+(isDaily?"日K":"4H")+"）</span><span style=\"color:#60a5fa\">— MA7</span><span style=\"color:#f7931a\">— MA20</span><span style=\"color:#f97316\">— MA50</span><span style=\"color:#a78bfa\">— 布林帶</span>";var useDaily=isDaily||(oh&&oh.length>48);function dayKey(ts){var d=new Date(ts*1000);return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0")}var bars;if(useDaily){var map={};(oh||[]).forEach(function(x){var k=dayKey(x.time);if(!map[k])map[k]={time:k,open:x.o,high:x.h,low:x.l,close:x.c};else{var b=map[k];b.high=Math.max(b.high,x.h);b.low=Math.min(b.low,x.l);b.close=x.c}});bars=Object.keys(map).sort().map(function(k){return map[k]})}else{var seen={},u=[];(oh||[]).map(function(x){return{time:x.time,open:x.o,high:x.h,low:x.l,close:x.c}}).sort(function(a,b){return a.time-b.time}).forEach(function(d){if(!seen[d.time]){seen[d.time]=1;u.push(d)}});bars=u}if(!bars||!bars.length){el.innerHTML="<p class=\"loading\">無圖表資料，請稍後重試</p>";return}var w=Math.max(el.clientWidth||320,280);var ch=LightweightCharts.createChart(el,{width:w,height:320,layout:{background:{color:"#161b22"},textColor:"#8b9bb4"},grid:{vertLines:{color:"rgba(42,51,64,.5)"},horzLines:{color:"rgba(42,51,64,.5)"}},rightPriceScale:{borderColor:"#2a3340"},timeScale:{borderColor:"#2a3340",timeVisible:!useDaily,secondsVisible:false},crosshair:{mode:0}});ch.addCandlestickSeries({upColor:"#22c55e",downColor:"#ef4444",borderUpColor:"#22c55e",borderDownColor:"#ef4444",wickUpColor:"#22c55e",wickDownColor:"#ef4444"}).setData(bars);var closes=bars.map(function(b){return b.close});function ld(arr){var o=[];for(var i=0;i<bars.length;i++)if(arr[i]!=null)o.push({time:bars[i].time,value:arr[i]});return o}var m7=sma(closes,Math.min(7,closes.length)),m20=sma(closes,Math.min(20,closes.length)),m50=sma(closes,Math.min(50,closes.length)),bb=boll(closes,Math.min(20,closes.length),2);ch.addLineSeries({color:"#60a5fa",lineWidth:1,priceLineVisible:false,lastValueVisible:true}).setData(ld(m7));ch.addLineSeries({color:"#f7931a",lineWidth:2,priceLineVisible:false,lastValueVisible:true}).setData(ld(m20));ch.addLineSeries({color:"#f97316",lineWidth:2,priceLineVisible:false,lastValueVisible:true}).setData(ld(m50));ch.addLineSeries({color:"rgba(167,139,250,0.7)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.upper));ch.addLineSeries({color:"rgba(148,163,184,0.45)",lineWidth:1,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.mid));ch.addLineSeries({color:"rgba(167,139,250,0.7)",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(ld(bb.lower));ch.timeScale().fitContent();window.chart=ch;setTimeout(function(){if(ch&&el.clientWidth)ch.applyOptions({width:el.clientWidth});ch.timeScale().fitContent()},200)}})();<\/script>';
+  html = html.replace('</body>', enhance + '</body>');
+  document.open();
+  document.write(html);
+  document.close();
+}).catch(function(e){
+  document.body.innerHTML = '<div style="font-family:sans-serif;padding:24px;background:#0c0f14;color:#e8eef7"><h1 style="color:#f7931a">鏈脈終端</h1><p>載入失敗：'+(e&&e.message?e.message:e)+'</p><p><a style="color:#f7931a" href="https://rl625.github.io/gold-costco-app/">金脈終端</a></p></div>';
+});
+</script>
+</head>
+<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端…</body>
+</html>
