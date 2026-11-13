@@ -5,22 +5,22 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>鏈脈終端 ChainVein</title>
 <script>
-// 從本站最新部署載入完整應用（不再依賴 jsDelivr / 舊 commit）
-const SRC = './app.html?v=' + Date.now();
-fetch(SRC)
-  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-  .then(function(html){
+(function(){
+  var v = Date.now();
+  Promise.all([
+    fetch('./app.part1.html?v=' + v).then(function(r){ if(!r.ok) throw new Error('part1 '+r.status); return r.text(); }),
+    fetch('./app.part2.html?v=' + v).then(function(r){ if(!r.ok) throw new Error('part2 '+r.status); return r.text(); })
+  ]).then(function(parts){
     document.open();
-    document.write(html);
+    document.write(parts[0] + parts[1]);
     document.close();
-  })
-  .catch(function(e){
+  }).catch(function(e){
     document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0c0f14;color:#e8eef7">載入失敗：' +
       (e && e.message ? e.message : e) +
-      '<br><br><a style="color:#f7931a" href="./app.html">直接開啟 app.html</a>' +
-      '<br><a style="color:#f7931a" href="../">金脈終端（黃金）</a></p>';
+      '<br><br><a style="color:#f7931a" href="../">金脈終端（黃金）</a></p>';
   });
+})();
 </script>
 </head>
-<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端最新版…</body>
+<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端最新部署…</body>
 </html>
