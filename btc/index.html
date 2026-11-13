@@ -4,21 +4,34 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>鏈脈終端 ChainVein</title>
-<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<link rel="canonical" href="https://rl625.github.io/gold-costco-app/btc/"/>
 <script>
-Promise.all([fetch('./b0.b64?v=2').then(r=>{if(!r.ok)throw new Error('b0 '+r.status);return r.text()}),fetch('./b1.b64?v=2').then(r=>{if(!r.ok)throw new Error('b1 '+r.status);return r.text()}),fetch('./b2.b64?v=2').then(r=>{if(!r.ok)throw new Error('b2 '+r.status);return r.text()})]).then(function(parts){
-  var b64 = parts.join('');
-  var bin = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
-  var html = pako.ungzip(bin, {to: 'string'});
-  document.open();
-  document.write(html);
-  document.close();
-}).catch(function(e){
-  document.body.innerHTML = '<p style="font-family:sans-serif;padding:24px;background:#0c0f14;color:#e8eef7">載入失敗：' +
-    (e && e.message ? e.message : e) +
-    '<br><br><a style="color:#f7931a" href="../">金脈終端（黃金）</a></p>';
-});
+// 最新部署入口：https://rl625.github.io/gold-costco-app/btc/
+var SRC = 'https://cdn.jsdelivr.net/gh/RL625/gold-costco-app@1302652/btc/index.html';
+fetch(SRC)
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+  .then(function(html){
+    html = html
+      .replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/RL625\/gold-costco-app@[^"'\s]+\/?/g, 'https://rl625.github.io/gold-costco-app/')
+      .replace(/https:\/\/github\.com\/RL625\/gold-costco-app[^"'\s]*/g, 'https://rl625.github.io/gold-costco-app/')
+      .replace(/href="\.\.\/"/g, 'href="https://rl625.github.io/gold-costco-app/"')
+      .replace(/href="\.\.\/index\.html"/g, 'href="https://rl625.github.io/gold-costco-app/"');
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(function(e){
+    document.body.innerHTML =
+      '<div style="font-family:sans-serif;padding:24px;background:#0c0f14;color:#e8eef7;line-height:1.6">' +
+      '<h1 style="color:#f7931a">鏈脈終端</h1>' +
+      '<p>載入失敗：' + (e && e.message ? e.message : e) + '</p>' +
+      '<p><a style="color:#f7931a" href="https://rl625.github.io/gold-costco-app/btc/">重新開啟最新部署</a></p>' +
+      '<p><a style="color:#f7931a" href="https://rl625.github.io/gold-costco-app/">金脈終端（黃金）</a></p>' +
+      '</div>';
+  });
 </script>
 </head>
-<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">載入鏈脈終端最新部署…</body>
+<body style="background:#0c0f14;color:#8b9bb4;font-family:sans-serif;padding:24px">
+載入鏈脈終端最新部署（https://rl625.github.io/gold-costco-app/btc/）…
+</body>
 </html>
