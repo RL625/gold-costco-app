@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>銀脈終端 SilverVein</title>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="./ohlc.js"></script>
 <style>
 :root{--bg:#0f1419;--card:#1a2332;--bd:#2d3a4f;--sil:#c0c7d1;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -75,14 +76,13 @@ footer{text-align:center;padding:20px;color:var(--mu);font-size:.78rem}
 <div id="body"></div>
 </div>
 
-<footer>銀脈終端 · 非投資建議 · 現貨 Gold-API/Coinbase · K線 SI=F 內嵌</footer>
+<footer>銀脈終端 · 非投資建議 · 現貨 Gold-API/Coinbase · K線 SI=F</footer>
 <script>
-/*OHLC_PLACEHOLDER*/
 var days=90,master=null,OZ=31.1034768;
 function sma(a,n){var o=Array(a.length).fill(null),s=0;for(var i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}
 function rsi(c,p){p=p||14;var o=Array(c.length).fill(null);if(c.length<p+1)return o;var g=0,l=0;for(var i=1;i<=p;i++){var d=c[i]-c[i-1];if(d>=0)g+=d;else l-=d}var ag=g/p,al=l/p;o[p]=al===0?100:100-(100/(1+ag/al));for(var j=p+1;j<c.length;j++){var df=c[j]-c[j-1];ag=(ag*(p-1)+(df>0?df:0))/p;al=(al*(p-1)+(df<0?-df:0))/p;o[j]=al===0?100:100-(100/(1+ag/al))}return o}
 function atr(oh,p){p=p||14;var tr=[],o=Array(oh.length).fill(null);for(var i=0;i<oh.length;i++){if(i===0)tr.push(oh[i].h-oh[i].l);else{var pc=oh[i-1].c;tr.push(Math.max(oh[i].h-oh[i].l,Math.abs(oh[i].h-pc),Math.abs(oh[i].l-pc)))}}var s=0;for(var i=0;i<tr.length;i++){s+=tr[i];if(i>=p)s-=tr[i-p];if(i>=p-1)o[i]=s/p}return o}
-function getMaster(){if(master)return master;master=EMBEDDED.map(function(r){return{time:r[0],o:r[1],h:r[2],l:r[3],c:r[4]}});return master}
+function getMaster(){if(master)return master;if(typeof EMBEDDED==='undefined'||!EMBEDDED.length)throw new Error('K線未載入');master=EMBEDDED.map(function(r){return{time:r[0],o:r[1],h:r[2],l:r[3],c:r[4]}});return master}
 function slice(oh,d){var cut=Date.now()/1000-d*86400;var s=oh.filter(function(x){return x.time>=cut});return s.length>=2?s:oh.slice(-Math.min(oh.length,Math.max(5,d)))}
 async function fetchSpotUsd(){
  try{var r=await fetch('https://api.gold-api.com/price/XAG');if(r.ok){var j=await r.json();if(j.price>0)return +j.price}}catch(e){}
@@ -99,7 +99,7 @@ async function loadSpot(){
   document.getElementById('pTwd').textContent='NT$'+Math.round(twd).toLocaleString();
   document.getElementById('pGram').textContent='NT$'+(twd/OZ).toFixed(2);
   document.getElementById('upd').textContent=new Date().toLocaleString('zh-TW');
-  var m=getMaster();if(m.length){m[m.length-1].c=usd;m[m.length-1].h=Math.max(m[m.length-1].h,usd);m[m.length-1].l=Math.min(m[m.length-1].l,usd)}
+  try{var m=getMaster();if(m.length){m[m.length-1].c=usd;m[m.length-1].h=Math.max(m[m.length-1].h,usd);m[m.length-1].l=Math.min(m[m.length-1].l,usd)}}catch(e){}
   L.style.display='none';C.style.display='grid';
  }catch(e){L.textContent='失敗：'+(e.message||e)}
 }
@@ -172,7 +172,7 @@ document.getElementById('pbtns').onclick=function(e){
  var b=e.target.closest('button[data-d]');if(!b)return;days=+b.getAttribute('data-d');
  [].forEach.call(document.querySelectorAll('#pbtns button'),function(x){x.classList.remove('on')});b.classList.add('on');loadPanel();
 };
-loadSpot();setTimeout(loadPanel,300);setTimeout(loadK,600);
+loadSpot();setTimeout(loadPanel,400);setTimeout(loadK,700);
 </script>
 </body>
 </html>
