@@ -1,1 +1,27 @@
-FILE_CONTENT_PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>銀脈終端 SilverVein</title>
+<link rel="canonical" href="https://rl625.github.io/gold-costco-app/silver/"/>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script>
+Promise.all([
+  fetch('./si0.b64?v=2').then(function(r){if(!r.ok)throw new Error('si0');return r.text()}),
+  fetch('./si1.b64?v=2').then(function(r){if(!r.ok)throw new Error('si1');return r.text()}),
+  fetch('./si2.b64?v=2').then(function(r){if(!r.ok)throw new Error('si2');return r.text()}),
+  fetch('./si3.b64?v=2').then(function(r){if(!r.ok)throw new Error('si3');return r.text()}),
+  fetch('./si4.b64?v=2').then(function(r){if(!r.ok)throw new Error('si4');return r.text()}),
+  fetch('./si5.b64?v=2').then(function(r){if(!r.ok)throw new Error('si5');return r.text()})
+]).then(function(parts){
+  var bin = Uint8Array.from(atob(parts.join('')), function(c){ return c.charCodeAt(0); });
+  var html = pako.ungzip(bin, { to: 'string' });
+  document.open(); document.write(html); document.close();
+}).catch(function(e){
+  document.body.innerHTML = '<div style="font-family:sans-serif;padding:24px;background:#0f1419;color:#e8eef7"><h1>銀脈終端</h1><p>載入失敗：'+(e&&e.message?e.message:e)+'</p><p><a style="color:#c0c7d1" href="https://rl625.github.io/gold-costco-app/">金脈終端</a></p></div>';
+});
+</script>
+</head>
+<body style="background:#0f1419;color:#8b9bb4;font-family:sans-serif;padding:24px">載入銀脈終端…</body>
+</html>
