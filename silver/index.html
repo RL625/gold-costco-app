@@ -4,17 +4,175 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>銀脈終端 SilverVein</title>
-<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-<script>
-Promise.all([0,1,2,3].map(function(i){
-  return fetch('./sv'+i+'.b64?v=3').then(function(r){ if(!r.ok) throw new Error('sv'+i); return r.text(); });
-})).then(function(parts){
-  var bin = Uint8Array.from(atob(parts.join('')), function(c){ return c.charCodeAt(0); });
-  document.open(); document.write(pako.ungzip(bin, {to:'string'})); document.close();
-}).catch(function(e){
-  document.body.innerHTML='<div style="padding:24px;background:#0f1419;color:#e8eef7;font-family:sans-serif"><h1>銀脈終端</h1><p>'+(e.message||e)+'</p><a href="https://rl625.github.io/gold-costco-app/" style="color:#c0c7d1">金脈</a></div>';
-});
-</script>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0f1419;--card:#1a2332;--bd:#2d3a4f;--sil:#c0c7d1;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:#e8eef7;font-family:system-ui,sans-serif;max-width:960px;margin:0 auto;padding:0 14px 40px}
+header{text-align:center;padding:20px 0 14px;border-bottom:1px solid var(--bd)}
+header h1{font-size:clamp(1.35rem,4vw,1.8rem);background:linear-gradient(135deg,#e8eef7,#8b9bb4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--mu);font-size:.88rem;margin-top:6px}
+header a{color:var(--sil);text-decoration:none;font-size:.85rem;margin:0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin:14px 0}
+h2{font-size:1.05rem;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.pb{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.pb .l{font-size:.72rem;color:var(--mu)}.pb .v{font-size:1.25rem;font-weight:700;color:var(--sil);margin:4px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.btns button{background:0 0;border:1px solid var(--bd);color:var(--mu);padding:8px 12px;border-radius:999px;cursor:pointer;font-size:.82rem}
+.btns button.on{background:var(--sil);color:#0f1419;font-weight:600}
+#candle{height:320px;border-radius:12px;background:var(--bg)}
+.rbtn{background:0 0;border:1px solid var(--bd);color:var(--mu);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.st{font-size:.8rem;color:var(--mu);margin:8px 0}
+#kG{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.kc{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.rec{font-size:.72rem;padding:2px 8px;border-radius:999px;font-weight:600}
+.rb{background:rgba(34,197,94,.2);color:var(--g)}.rw{background:rgba(239,68,68,.2);color:var(--r)}.rh{background:rgba(192,199,209,.2);color:var(--sil)}
+.go{padding:12px;border-radius:12px;margin:10px 0;border:1px solid var(--bd)}
+.go-y{background:rgba(34,197,94,.12)}.go-n{background:rgba(239,68,68,.12)}.go-w{background:rgba(192,199,209,.1)}
+.sb{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin:10px 0}
+.sc{text-align:center;padding:8px;background:var(--bg);border-radius:10px;border:1px solid var(--bd);font-size:.82rem}
+.lt{width:10px;height:10px;border-radius:50%;margin:6px auto}
+.lg{background:#22c55e}.ly{background:#eab308}.lr{background:#ef4444}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:8px}
+td{padding:6px 4px;border-bottom:1px solid var(--bd)}td:last-child{text-align:right;font-weight:600}
+footer{text-align:center;padding:20px;color:var(--mu);font-size:.78rem}
+</style>
 </head>
-<body style="background:#0f1419;color:#8b9bb4;padding:24px;font-family:sans-serif">載入銀脈終端…</body>
+<body>
+<header>
+<h1>🥈 銀脈終端 SilverVein</h1>
+<p>白銀現貨 · 多週期分析 · 合約參考（比照金脈，無好市多）</p>
+<p><a href="https://rl625.github.io/gold-costco-app/">← 金脈</a>
+<a href="https://rl625.github.io/gold-costco-app/btc/">鏈脈 →</a></p>
+</header>
+
+<div class="card">
+<h2>① 📈 即時白銀 <button class="rbtn" onclick="loadSpot()">重新整理</button></h2>
+<p class="st" id="spotL">載入中…</p>
+<div id="spotC" style="display:none" class="pg">
+<div class="pb"><div class="l">XAG/USD（盎司）</div><div class="v" id="pUsd">—</div></div>
+<div class="pb"><div class="l">XAG/TWD（盎司）</div><div class="v" id="pTwd">—</div></div>
+<div class="pb"><div class="l">每公克 TWD</div><div class="v" id="pGram">—</div><div class="l" id="upd">—</div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>② 📊 多週期趨勢分析 <button class="rbtn" onclick="loadK()">重新分析</button></h2>
+<div id="kL" class="st">分析中…</div>
+<div id="kC" style="display:none"><div id="kG"></div></div>
+</div>
+
+<div class="card">
+<h2>③ 📉 白銀合約參考儀表板 <button class="rbtn" onclick="loadPanel()">重新整理</button></h2>
+<div class="btns" id="pbtns">
+<button data-d="7">7天</button><button data-d="14">14天</button><button data-d="30">30天</button>
+<button class="on" data-d="90">90天</button><button data-d="180">半年</button>
+</div>
+<div id="candle"></div>
+<p class="st" id="pst">載入中…</p>
+<div id="dash"></div>
+<div id="body"></div>
+</div>
+
+<footer>銀脈終端 · 非投資建議 · 現貨 Gold-API/Coinbase · K線 SI=F 內嵌</footer>
+<script>
+/*OHLC_PLACEHOLDER*/
+var days=90,master=null,OZ=31.1034768;
+function sma(a,n){var o=Array(a.length).fill(null),s=0;for(var i=0;i<a.length;i++){s+=a[i];if(i>=n)s-=a[i-n];if(i>=n-1)o[i]=s/n}return o}
+function rsi(c,p){p=p||14;var o=Array(c.length).fill(null);if(c.length<p+1)return o;var g=0,l=0;for(var i=1;i<=p;i++){var d=c[i]-c[i-1];if(d>=0)g+=d;else l-=d}var ag=g/p,al=l/p;o[p]=al===0?100:100-(100/(1+ag/al));for(var j=p+1;j<c.length;j++){var df=c[j]-c[j-1];ag=(ag*(p-1)+(df>0?df:0))/p;al=(al*(p-1)+(df<0?-df:0))/p;o[j]=al===0?100:100-(100/(1+ag/al))}return o}
+function atr(oh,p){p=p||14;var tr=[],o=Array(oh.length).fill(null);for(var i=0;i<oh.length;i++){if(i===0)tr.push(oh[i].h-oh[i].l);else{var pc=oh[i-1].c;tr.push(Math.max(oh[i].h-oh[i].l,Math.abs(oh[i].h-pc),Math.abs(oh[i].l-pc)))}}var s=0;for(var i=0;i<tr.length;i++){s+=tr[i];if(i>=p)s-=tr[i-p];if(i>=p-1)o[i]=s/p}return o}
+function getMaster(){if(master)return master;master=EMBEDDED.map(function(r){return{time:r[0],o:r[1],h:r[2],l:r[3],c:r[4]}});return master}
+function slice(oh,d){var cut=Date.now()/1000-d*86400;var s=oh.filter(function(x){return x.time>=cut});return s.length>=2?s:oh.slice(-Math.min(oh.length,Math.max(5,d)))}
+async function fetchSpotUsd(){
+ try{var r=await fetch('https://api.gold-api.com/price/XAG');if(r.ok){var j=await r.json();if(j.price>0)return +j.price}}catch(e){}
+ try{var r2=await fetch('https://api.coinbase.com/v2/prices/XAG-USD/spot');if(r2.ok){var j2=await r2.json();var a=parseFloat(j2.data&&j2.data.amount);if(a>0)return a}}catch(e){}
+ throw new Error('無白銀現價');
+}
+async function fetchFx(){try{var r=await fetch('https://api.coinbase.com/v2/exchange-rates?currency=USD');var j=await r.json();return parseFloat(j.data.rates.TWD)||32.9}catch(e){return 32.9}}
+async function loadSpot(){
+ var L=document.getElementById('spotL'),C=document.getElementById('spotC');
+ L.style.display='block';C.style.display='none';
+ try{
+  var usd=await fetchSpotUsd(),fx=await fetchFx(),twd=usd*fx;
+  document.getElementById('pUsd').textContent='$'+usd.toFixed(3);
+  document.getElementById('pTwd').textContent='NT$'+Math.round(twd).toLocaleString();
+  document.getElementById('pGram').textContent='NT$'+(twd/OZ).toFixed(2);
+  document.getElementById('upd').textContent=new Date().toLocaleString('zh-TW');
+  var m=getMaster();if(m.length){m[m.length-1].c=usd;m[m.length-1].h=Math.max(m[m.length-1].h,usd);m[m.length-1].l=Math.min(m[m.length-1].l,usd)}
+  L.style.display='none';C.style.display='grid';
+ }catch(e){L.textContent='失敗：'+(e.message||e)}
+}
+function plan(oh){
+ if(!oh||oh.length<5)return null;
+ var cl=oh.map(function(x){return x.c}),last=cl[cl.length-1];
+ var m7=sma(cl,Math.min(7,cl.length)),m20=sma(cl,Math.min(20,cl.length)),m50=sma(cl,Math.min(50,cl.length));
+ var r=rsi(cl,14),a=atr(oh,14),lr=r[r.length-1],la=a[a.length-1]||last*0.02;
+ var sc=0;
+ if(m7[m7.length-1]!=null&&m20[m20.length-1]!=null)sc+=m7[m7.length-1]>m20[m20.length-1]?1:-1;
+ if(m20[m20.length-1]!=null&&m50[m50.length-1]!=null)sc+=m20[m20.length-1]>m50[m50.length-1]?1:-1;
+ if(lr!=null){if(lr<35)sc+=1;else if(lr>65)sc-=1}
+ var dir=sc>=1?'偏多':(sc<=-1?'偏空':'觀望');
+ return{last:last,lastRsi:lr,lastAtr:la,direction:dir,score:sc,leverage:5,entry:last,sl:dir==='偏多'?last-1.5*la:last+1.5*la,tp1:dir==='偏多'?last+2*la:last-2*la,tp2:dir==='偏多'?last+3.5*la:last-3.5*la,ma7:m7[m7.length-1],ma20:m20[m20.length-1]};
+}
+function renderCandle(oh){
+ var el=document.getElementById('candle');if(!el||typeof LightweightCharts==='undefined')return;
+ el.innerHTML='';
+ function dk(t){var d=new Date(t*1000);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')}
+ var map={};oh.forEach(function(x){var k=dk(x.time);if(!map[k])map[k]={time:k,open:x.o,high:x.h,low:x.l,close:x.c};else{var b=map[k];b.high=Math.max(b.high,x.h);b.low=Math.min(b.low,x.l);b.close=x.c}});
+ var bars=Object.keys(map).sort().map(function(k){return map[k]});
+ if(!bars.length){el.innerHTML='<p class="st">無圖表</p>';return}
+ var w=Math.max(el.clientWidth||300,280);
+ var ch=LightweightCharts.createChart(el,{width:w,height:320,layout:{background:{color:'#1a2332'},textColor:'#8b9bb4'},grid:{vertLines:{color:'rgba(45,58,79,.5)'},horzLines:{color:'rgba(45,58,79,.5)'}},rightPriceScale:{borderColor:'#2d3a4f'},timeScale:{borderColor:'#2d3a4f'},crosshair:{mode:0}});
+ ch.addCandlestickSeries({upColor:'#22c55e',downColor:'#ef4444',borderUpColor:'#22c55e',borderDownColor:'#ef4444',wickUpColor:'#22c55e',wickDownColor:'#ef4444'}).setData(bars);
+ var closes=bars.map(function(b){return b.close});
+ function ld(arr){var o=[];for(var i=0;i<bars.length;i++)if(arr[i]!=null)o.push({time:bars[i].time,value:arr[i]});return o}
+ var m7=sma(closes,Math.min(7,closes.length)),m20=sma(closes,Math.min(20,closes.length)),m50=sma(closes,Math.min(50,closes.length));
+ ch.addLineSeries({color:'#60a5fa',lineWidth:1,priceLineVisible:false}).setData(ld(m7));
+ ch.addLineSeries({color:'#a8b4c4',lineWidth:2,priceLineVisible:false}).setData(ld(m20));
+ ch.addLineSeries({color:'#f97316',lineWidth:2,priceLineVisible:false}).setData(ld(m50));
+ ch.timeScale().fitContent();
+ setTimeout(function(){if(el.clientWidth)ch.applyOptions({width:el.clientWidth})},200);
+}
+async function loadPanel(){
+ var st=document.getElementById('pst'),body=document.getElementById('body');
+ st.textContent='載入中…';
+ try{
+  var oh=slice(getMaster(),days);renderCandle(oh);var p=plan(oh);if(!p)throw new Error('資料不足');
+  var bc=p.score>=1?'go-y':(p.score<=-1?'go-n':'go-w');
+  var title=p.score>=2?'✅ 偏多參考':(p.score<=-2?'✅ 偏空參考':(p.score===1?'偏多（弱）':(p.score===-1?'偏空（弱）':'觀望')));
+  document.getElementById('dash').innerHTML='<div class="go '+bc+'"><b>'+title+'</b><div class="st">依 MA／RSI／趨勢綜合 · 仍須設停損</div></div>'+
+   '<div class="sb">'+
+   '<div class="sc"><div>趨勢</div><div class="lt '+(p.score>=1?'lg':(p.score<=-1?'lr':'ly'))+'"></div>'+p.direction+'</div>'+
+   '<div class="sc"><div>RSI</div><div class="lt ly"></div>'+(p.lastRsi!=null?p.lastRsi.toFixed(1):'—')+'</div>'+
+   '<div class="sc"><div>ATR</div><div class="lt ly"></div>$'+p.lastAtr.toFixed(3)+'</div>'+
+   '<div class="sc"><div>MA7/20</div><div class="lt '+(p.ma7!=null&&p.ma20!=null?(p.ma7>p.ma20?'lg':'lr'):'ly')+'"></div>'+(p.ma7!=null&&p.ma20!=null?(p.ma7>p.ma20?'多頭':'空頭'):'—')+'</div>'+
+   '</div>';
+  body.innerHTML='<table><tr><td>最新</td><td>$'+p.last.toFixed(3)+'</td></tr><tr><td>方向</td><td>'+p.direction+'</td></tr><tr><td>槓桿（保守）</td><td>'+p.leverage+'x</td></tr><tr><td>進場</td><td>$'+p.entry.toFixed(3)+'</td></tr><tr><td>停損</td><td>$'+p.sl.toFixed(3)+'</td></tr><tr><td>停利1</td><td>$'+p.tp1.toFixed(3)+'</td></tr><tr><td>停利2</td><td>$'+p.tp2.toFixed(3)+'</td></tr></table><p class="st">白銀合約商品因交易所而異，請自行核對規格。</p>';
+  st.textContent='SI=F · '+oh.length+' 根 · '+days+'天 · '+new Date().toLocaleString('zh-TW');
+ }catch(e){st.textContent='失敗：'+(e.message||e);body.innerHTML=''}
+}
+async function loadK(){
+ var L=document.getElementById('kL'),C=document.getElementById('kC'),G=document.getElementById('kG');
+ L.style.display='block';C.style.display='none';
+ try{
+  var m=getMaster(),h='',periods=[{d:7,l:'7天'},{d:30,l:'30天'},{d:90,l:'90天'},{d:180,l:'半年'}];
+  periods.forEach(function(p){
+   var oh=slice(m,p.d);if(oh.length<2){h+='<div class="kc"><b>'+p.l+'</b> <span class="rec rh">不足</span></div>';return}
+   var cl=oh.map(function(x){return x.c}),ret=((cl[cl.length-1]-cl[0])/cl[0])*100;
+   var hi=Math.max.apply(null,oh.map(function(x){return x.h})),lo=Math.min.apply(null,oh.map(function(x){return x.l}));
+   var pos=(cl[cl.length-1]-lo)/(hi-lo||1);
+   var rec='持有觀望',rc='rh';if(ret>6&&pos<.75){rec='偏多可留意';rc='rb'}else if(ret<-6||pos>.85){rec='偏慎';rc='rw'}
+   h+='<div class="kc"><div style="display:flex;justify-content:space-between"><b>'+p.l+'</b><span class="rec '+rc+'">'+rec+'</span></div><div class="st">漲跌 '+(ret>=0?'+':'')+ret.toFixed(1)+'% · 位置 '+(pos*100).toFixed(0)+'%</div><div class="st">高 $'+hi.toFixed(2)+' · 低 $'+lo.toFixed(2)+' · 收 $'+cl[cl.length-1].toFixed(2)+'</div></div>';
+  });
+  G.innerHTML=h;L.style.display='none';C.style.display='block';
+ }catch(e){L.textContent='失敗：'+(e.message||e)}
+}
+document.getElementById('pbtns').onclick=function(e){
+ var b=e.target.closest('button[data-d]');if(!b)return;days=+b.getAttribute('data-d');
+ [].forEach.call(document.querySelectorAll('#pbtns button'),function(x){x.classList.remove('on')});b.classList.add('on');loadPanel();
+};
+loadSpot();setTimeout(loadPanel,300);setTimeout(loadK,600);
+</script>
+</body>
 </html>
