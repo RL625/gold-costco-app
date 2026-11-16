@@ -52,32 +52,16 @@ header a{color:var(--a);text-decoration:none;margin:0 4px}
   display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center
 }
 .row .right{text-align:right;min-width:7.5rem}
-.price{
-  font-size:1.12rem;font-weight:700;letter-spacing:-.01em;
-  color:#fff;
-}
-.save{
-  font-size:.82rem;font-weight:700;color:var(--save);
-  margin-top:2px;line-height:1.3
-}
+.price{font-size:1.12rem;font-weight:700;letter-spacing:-.01em;color:#fff}
+.save{font-size:.82rem;font-weight:700;color:var(--save);margin-top:2px;line-height:1.3}
 .save .amt{font-size:.95rem}
 .end{font-size:.7rem;color:var(--mu);font-weight:400}
-.badge{
-  display:inline-block;font-size:.68rem;padding:1px 6px;
-  border-radius:999px;font-weight:600;line-height:1.4
-}
+.badge{display:inline-block;font-size:.68rem;padding:1px 6px;border-radius:999px;font-weight:600;line-height:1.4}
 .in{background:rgba(34,197,94,.22);color:var(--g)}
 .out{background:rgba(239,68,68,.18);color:var(--r)}
 .low{background:rgba(245,158,11,.22);color:var(--o)}
-.buy{
-  display:inline-block;margin-top:5px;padding:4px 9px;
-  background:var(--a);color:#fff;border-radius:6px;
-  text-decoration:none;font-size:.75rem;font-weight:600
-}
-.rbtn{
-  background:var(--card);border:1px solid var(--bd);color:var(--mu);
-  padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem
-}
+.buy{display:inline-block;margin-top:5px;padding:4px 9px;background:var(--a);color:#fff;border-radius:6px;text-decoration:none;font-size:.75rem;font-weight:600}
+.rbtn{background:var(--card);border:1px solid var(--bd);color:var(--mu);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem}
 .rbtn.on{border-color:var(--a);color:var(--a)}
 .rbtn.primary{background:var(--a);color:#fff;border-color:var(--a)}
 .rbtn.primary:disabled{opacity:.55;cursor:wait}
@@ -86,7 +70,9 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 .nav{margin-top:6px;font-size:.75rem}
 .nav a{color:var(--mu)}
 .links a{color:var(--a)}
-
+.ph{font-size:.7rem;margin-top:2px;font-weight:600}
+.ph.down{color:#22c55e}
+.ph.up{color:#ef4444}
 @media(min-width:640px){
   .row{padding:11px 14px;gap:8px 16px}
   .price{font-size:1.2rem}
@@ -98,10 +84,6 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
   body{padding:0 16px 48px}
   .price{font-size:1.25rem}
 }
-
-.ph{font-size:.7rem;margin-top:2px;font-weight:600}
-.ph.down{color:#22c55e}
-.ph.up{color:#ef4444}
 </style>
 </head>
 <body>
@@ -130,13 +112,17 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
 <footer>
   資料來源：costco.com.tw · 價格與庫存以官網為準 · 非官方工具<br>
-  「更新」會清除快取重新載入。價格歷史存在本機瀏覽器。
+  價格歷史存在本機瀏覽器，下次價格變動時會顯示曾降／曾漲。
 </footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
-var PARTS=60;
+
+/* ===== embedded gzip+b64 data (356 items) ===== */
+var EMB=[
+PLACEHOLDER_CHUNKS
+];
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
@@ -257,23 +243,22 @@ function buildTabs(){
   };
 }
 
-function loadData(bust){
-  var v=bust||Date.now();
+function loadData(){
   document.getElementById('meta').textContent='載入中…';
-  var PARTS=60;
-  return Promise.all(Array.from({length:PARTS},function(_,i){
-    return fetch('./x'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
-      if(!r.ok) throw new Error('x'+i+'.json HTTP '+r.status);
-      return r.json();
-    });
-  })).then(function(arrs){
-    var items=[];
-    arrs.forEach(function(a){ items=items.concat(a); });
-    DATA={updated:'2026-11-16',items:items};
-    recordPrices(items, DATA.updated);
-    buildTabs();
-    render();
-    return DATA;
+  return new Promise(function(resolve,reject){
+    try{
+      var b64=EMB.join('');
+      var bin=atob(b64);
+      var u8=new Uint8Array(bin.length);
+      for(var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+      new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer().then(function(ab){
+        DATA=JSON.parse(new TextDecoder().decode(ab));
+        recordPrices(DATA.items||[], DATA.updated||'2026-11-16');
+        buildTabs();
+        render();
+        resolve(DATA);
+      }).catch(reject);
+    }catch(e){ reject(e); }
   });
 }
 
@@ -295,7 +280,7 @@ document.getElementById('btnSave').onclick=function(){
 document.getElementById('btnRefresh').onclick=function(){
   var btn=this;
   btn.disabled=true; btn.textContent='更新中…';
-  loadData(Date.now()).then(function(){
+  loadData().then(function(){
     btn.textContent='✅ 已更新';
     setTimeout(function(){ btn.textContent='🔄 更新'; btn.disabled=false; },1400);
   }).catch(function(e){
