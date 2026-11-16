@@ -107,7 +107,7 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 <body>
 <header>
   <h1>🔥 好市多特價專區</h1>
-  <p>限時優惠 · 把握優惠 · 降價商品</p>
+  <p>限時優惠 · 把握優惠 · 降價商品（完整 350+ 件）</p>
   <p class="links">
     <a href="https://www.costco.com.tw/c/hot-buys" target="_blank" rel="noopener">限時優惠</a>
     <a href="https://www.costco.com.tw/While-Supplies-Last/c/Toogood" target="_blank" rel="noopener">把握優惠</a>
@@ -130,12 +130,13 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
 <footer>
   資料來源：costco.com.tw · 價格與庫存以官網為準 · 非官方工具<br>
-  「更新」會清除快取重新載入。價格歷史存在本機瀏覽器，下次價格變動時會顯示曾降／曾漲。
+  「更新」會清除快取重新載入。價格歷史存在本機瀏覽器。
 </footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
+var PARTS=60;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
@@ -259,12 +260,17 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return fetch('./data.json?v='+v,{cache:'no-store'}).then(function(r){
-    if(!r.ok) throw new Error('data.json HTTP '+r.status);
-    return r.json();
-  }).then(function(d){
-    DATA=d;
-    recordPrices(d.items||[], d.updated||'2026-11-16');
+  var PARTS=60;
+  return Promise.all(Array.from({length:PARTS},function(_,i){
+    return fetch('./x'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('x'+i+'.json HTTP '+r.status);
+      return r.json();
+    });
+  })).then(function(arrs){
+    var items=[];
+    arrs.forEach(function(a){ items=items.concat(a); });
+    DATA={updated:'2026-11-16',items:items};
+    recordPrices(items, DATA.updated);
     buildTabs();
     render();
     return DATA;
