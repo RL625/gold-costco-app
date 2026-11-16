@@ -119,11 +119,6 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
 
-/* ===== embedded gzip+b64 data (356 items) ===== */
-var EMB=[
-PLACEHOLDER_CHUNKS
-];
-
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
   if(p==null||p==='') return '登入顯示';
@@ -245,20 +240,22 @@ function buildTabs(){
 
 function loadData(){
   document.getElementById('meta').textContent='載入中…';
-  return new Promise(function(resolve,reject){
-    try{
-      var b64=EMB.join('');
-      var bin=atob(b64);
-      var u8=new Uint8Array(bin.length);
-      for(var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-      new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer().then(function(ab){
-        DATA=JSON.parse(new TextDecoder().decode(ab));
-        recordPrices(DATA.items||[], DATA.updated||'2026-11-16');
-        buildTabs();
-        render();
-        resolve(DATA);
-      }).catch(reject);
-    }catch(e){ reject(e); }
+  return Promise.all(Array.from({length:8},function(_,i){
+    return fetch('./emb'+i+'.txt?v='+Date.now(),{cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('emb'+i+' HTTP '+r.status);
+      return r.text();
+    });
+  })).then(function(arr){
+    var b64=arr.map(function(t){return t.trim();}).join('');
+    var bin=atob(b64), len=bin.length, u8=new Uint8Array(len);
+    for(var i=0;i<len;i++) u8[i]=bin.charCodeAt(i);
+    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  }).then(function(ab){
+    DATA=JSON.parse(new TextDecoder().decode(ab));
+    recordPrices(DATA.items||[], DATA.updated||'2026-11-16');
+    buildTabs();
+    render();
+    return DATA;
   });
 }
 
