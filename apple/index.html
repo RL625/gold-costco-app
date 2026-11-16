@@ -7,19 +7,22 @@
 <style>
 :root{--bg:#0f1419;--card:#1a2332;--bd:#2d3a4f;--a:#0a84ff;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444;--w:#e8eef7}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--w);font-family:system-ui,-apple-system,sans-serif;max-width:1100px;margin:0 auto;padding:0 14px 48px}
+body{background:var(--bg);color:var(--w);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:1100px;margin:0 auto;padding:0 14px 48px}
 header{text-align:center;padding:22px 0 16px;border-bottom:1px solid var(--bd);margin-bottom:12px}
-header h1{font-size:clamp(1.35rem,4vw,1.75rem)}
+header h1{font-size:clamp(1.35rem,4vw,1.75rem);letter-spacing:-.02em}
 header p{color:var(--mu);font-size:.88rem;margin-top:6px}
 header a{color:var(--a);text-decoration:none;font-size:.85rem;margin:0 6px}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
 .toolbar input{flex:1;min-width:160px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;color:var(--w);font-size:.95rem}
-.tabs{display:flex;flex-wrap:wrap;gap:6px}
-.tabs button{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:7px 12px;border-radius:999px;cursor:pointer;font-size:.82rem}
+.toolbar input:focus{outline:none;border-color:var(--a)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.tabs button{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:7px 12px;border-radius:999px;cursor:pointer;font-size:.82rem;transition:.15s}
+.tabs button:hover{border-color:var(--a);color:var(--w)}
 .tabs button.on{background:var(--a);color:#fff;border-color:var(--a);font-weight:600}
 .meta{font-size:.8rem;color:var(--mu);margin:8px 0 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s}
+.card:hover{border-color:#3d4f6a}
 .card img{width:100%;aspect-ratio:1;object-fit:contain;background:#111;padding:10px}
 .card .body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
 .card .name{font-size:.9rem;line-height:1.35;flex:1}
@@ -31,17 +34,24 @@ header a{color:var(--a);text-decoration:none;font-size:.85rem;margin:0 6px}
 .buy{display:inline-block;margin-top:6px;padding:8px 12px;background:var(--a);color:#fff;border-radius:8px;text-decoration:none;font-size:.85rem;text-align:center}
 .buy:hover{opacity:.9}
 .rbtn{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.82rem}
-footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem}
+.rbtn.on{border-color:var(--a);color:var(--a)}
+footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem;line-height:1.5}
 .empty{text-align:center;padding:40px;color:var(--mu)}
+.nav{margin-top:10px;font-size:.8rem}
+.nav a{color:var(--mu);margin:0 4px}
 </style>
 </head>
 <body>
 <header>
   <h1> 好市多 Apple 專區</h1>
-  <p>僅列出好市多台灣線上「品牌 = Apple」商品</p>
+  <p>僅列出好市多台灣線上「品牌 = Apple」商品（約 154 件）</p>
   <p>
     <a href="https://www.costco.com.tw/Apple/c/Apple" target="_blank" rel="noopener">官方 Apple 分類 →</a>
-    <a href="https://rl625.github.io/gold-costco-app/">金脈</a>
+  </p>
+  <p class="nav">
+    <a href="../">金脈</a> ·
+    <a href="../btc/">比特幣</a> ·
+    <a href="../silver/">白銀</a>
   </p>
 </header>
 
@@ -53,7 +63,10 @@ footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem}
 <p class="meta" id="meta">載入中…</p>
 <div class="grid" id="grid"></div>
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
-<footer>資料快照自 costco.com.tw（brand:Apple）· 價格與庫存以官網為準 · 非官方工具</footer>
+<footer>
+  資料快照自 costco.com.tw OCC API（brand:Apple）· 價格與庫存以官網為準 · 非官方工具<br>
+  點「在好市多查看」可直接前往購買頁面
+</footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, Q='';
@@ -69,8 +82,8 @@ function fullImg(g){ if(!g) return ''; return g.startsWith('http')?g:('https://w
 
 function filtered(){
   if(!DATA) return [];
-  var list=DATA.items||[];
-  return list.filter(function(x){
+  var list=(DATA.items||[]).slice();
+  list=list.filter(function(x){
     if(ONLY_STOCK && x.s!==1) return false;
     if(CAT!=='全部' && x.k!==CAT) return false;
     if(Q){
@@ -79,6 +92,13 @@ function filtered(){
     }
     return true;
   });
+  // 有貨優先
+  list.sort(function(a,b){
+    var sa=a.s===1?0:1, sb=b.s===1?0:1;
+    if(sa!==sb) return sa-sb;
+    return (a.n||'').localeCompare(b.n||'','zh-TW');
+  });
+  return list;
 }
 
 function render(){
@@ -94,7 +114,7 @@ function render(){
   grid.innerHTML=list.map(function(x){
     var stock=x.s===1?'<span class="badge in">有貨</span>':(x.s===2?'<span class="badge in">庫存少</span>':'<span class="badge out">缺貨</span>');
     var img=fullImg(x.g);
-    var imgHtml=img?'<img src="'+img+'" alt="" loading="lazy"/>':'<div style="aspect-ratio:1;background:#111"></div>';
+    var imgHtml=img?'<img src="'+img+'" alt="" loading="lazy" onerror="this.style.display=\'none\'"/>':'<div style="aspect-ratio:1;background:#111"></div>';
     return '<div class="card">'+imgHtml+'<div class="body"><div class="cat">'+x.k+' · #'+x.c+'</div><div class="name">'+x.n+'</div><div class="price">'+money(x.p,x.t)+'</div><div>'+stock+'</div><a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">在好市多查看</a></div></div>';
   }).join('');
 }
@@ -116,14 +136,13 @@ document.getElementById('q').addEventListener('input',function(e){ Q=(e.target.v
 document.getElementById('btnStock').onclick=function(){
   ONLY_STOCK=!ONLY_STOCK;
   this.textContent=ONLY_STOCK?'顯示全部':'只看有貨';
-  this.style.borderColor=ONLY_STOCK?'#0a84ff':'';
-  this.style.color=ONLY_STOCK?'#0a84ff':'';
+  this.classList.toggle('on',ONLY_STOCK);
   render();
 };
 
 fetch('./data.json?v='+Date.now()).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
 .then(function(d){ DATA=d; buildTabs(); render(); })
-.catch(function(e){ document.getElementById('meta').textContent='載入失敗：'+(e.message||e); });
+.catch(function(e){ document.getElementById('meta').textContent='載入失敗：'+(e.message||e)+'（請確認 data.json 存在）'; });
 </script>
 </body>
 </html>
