@@ -98,6 +98,10 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
   body{padding:0 16px 48px}
   .price{font-size:1.25rem}
 }
+
+.ph{font-size:.7rem;margin-top:2px;font-weight:600}
+.ph.down{color:#22c55e}
+.ph.up{color:#ef4444}
 </style>
 </head>
 <body>
@@ -126,18 +130,48 @@ footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-heig
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
 <footer>
   資料來源：costco.com.tw · 價格與庫存以官網為準 · 非官方工具<br>
-  「更新」會清除快取重新載入。
+  「更新」會清除快取重新載入。價格歷史存在本機瀏覽器。
 </footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
-var PARTS=20;
+var PARTS=40;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
   if(p==null||p==='') return '登入顯示';
   return 'NT$'+Number(p).toLocaleString('zh-TW',{maximumFractionDigits:0});
+}
+function loadHist(){
+  try{ return JSON.parse(localStorage.getItem('costco_ph')||'{}'); }catch(e){ return {}; }
+}
+function saveHist(h){
+  try{ localStorage.setItem('costco_ph', JSON.stringify(h)); }catch(e){}
+}
+function recordPrices(items, date){
+  var h=loadHist();
+  items.forEach(function(x){
+    if(x.p==null) return;
+    var code=String(x.c);
+    if(!h[code]) h[code]=[];
+    var last=h[code][h[code].length-1];
+    if(!last || last.p!==x.p){
+      h[code].push({d:date,p:x.p});
+      if(h[code].length>8) h[code]=h[code].slice(-8);
+    }
+  });
+  saveHist(h);
+}
+function priceChange(x){
+  var h=loadHist()[String(x.c)];
+  if(!h || h.length<2) return '';
+  var prev=h[h.length-2].p, cur=h[h.length-1].p;
+  if(prev==null||cur==null||prev===cur) return '';
+  var diff=cur-prev;
+  var pct=((diff/prev)*100).toFixed(1);
+  if(diff<0) return '<div class="ph down">↓ 曾降 NT$'+Math.abs(diff).toLocaleString()+' ('+pct+'%)</div>';
+  return '<div class="ph up">↑ 曾漲 NT$'+diff.toLocaleString()+' (+'+pct+'%)</div>';
 }
 function fullUrl(u){
   if(!u) return 'https://www.costco.com.tw/c/hot-buys';
@@ -194,6 +228,7 @@ function render(){
       var amt=x.saveT||('NT$'+Number(x.save).toLocaleString('zh-TW'));
       saveHtml='<div class="save">現省 <span class="amt">'+amt+'</span>'+(x.end?' <span class="end">至 '+x.end+'</span>':'')+'</div>';
     }
+    var ph=priceChange(x);
     return '<div class="row">'+
       '<div class="left">'+
         '<div class="name">'+x.n+'</div>'+
@@ -202,6 +237,7 @@ function render(){
       '<div class="right">'+
         '<div class="price">'+money(x.p,x.t)+'</div>'+
         saveHtml+
+        ph+
         '<a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">查看</a>'+
       '</div>'+
     '</div>';
@@ -232,7 +268,7 @@ function loadData(bust){
   })).then(function(arrs){
     var items=[];
     arrs.forEach(function(a){ items=items.concat(a); });
-    DATA={updated:'2026-11-16',items:items};
+    DATA={updated:'2026-11-16',items:items}; recordPrices(items, DATA.updated);
     buildTabs();
     render();
     return DATA;
