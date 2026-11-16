@@ -5,41 +5,50 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>好市多特價專區</title>
 <style>
-:root{--bg:#0b0f14;--card:#141c27;--bd:#243044;--a:#0a84ff;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444;--o:#f59e0b;--w:#e8eef7;--hdr:#1a2433}
+:root{--bg:#0b0f14;--card:#141c27;--bd:#243044;--a:#0a84ff;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444;--o:#f59e0b;--w:#e8eef7;--hdr:#1a2433;--gold:#eab308}
 *{box-sizing:border-box;margin:0;padding:0}html{font-size:15px}
 body{background:var(--bg);color:var(--w);font-family:system-ui,-apple-system,sans-serif;max-width:1200px;margin:0 auto;padding:0 8px 40px;-webkit-text-size-adjust:100%}
-header{text-align:center;padding:12px 0 8px;border-bottom:1px solid var(--bd);margin-bottom:8px}
+header{text-align:center;padding:12px 0 8px;border-bottom:1px solid var(--bd);margin-bottom:6px}
 header h1{font-size:clamp(1.1rem,3.5vw,1.45rem)}
 header p{color:var(--mu);font-size:.78rem;margin-top:3px}
 header a{color:var(--a);text-decoration:none;margin:0 4px}
 .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
 .toolbar input{flex:1;min-width:100px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;color:var(--w);font-size:.88rem}
-.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
-.tabs button{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:4px 9px;border-radius:999px;cursor:pointer;font-size:.74rem}
-.tabs button.on{background:var(--a);color:#fff;border-color:var(--a);font-weight:600}
+.label{font-size:.68rem;color:var(--mu);font-weight:600;letter-spacing:.04em;margin:6px 0 3px;text-transform:uppercase}
+.tabs-main{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.tabs-main button{background:var(--card);border:2px solid var(--bd);color:var(--w);padding:7px 14px;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:600}
+.tabs-main button.on{background:var(--a);border-color:var(--a);color:#fff}
+.tabs-main button.cat-apple.on{background:#555;border-color:#a1a1aa}
+.tabs-main button.cat-metal.on{background:#854d0e;border-color:var(--gold);color:#fef9c3}
+.tabs-sub{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px;padding:6px 0;border-top:1px dashed var(--bd)}
+.tabs-sub button{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:3px 9px;border-radius:999px;cursor:pointer;font-size:.7rem;font-weight:400}
+.tabs-sub button.on{border-color:var(--a);color:var(--a);background:rgba(10,132,255,.12)}
 .meta{font-size:.72rem;color:var(--mu);margin:4px 0 6px}
 .rbtn{background:var(--card);border:1px solid var(--bd);color:var(--mu);padding:6px 9px;border-radius:8px;cursor:pointer;font-size:.76rem}
 .rbtn.on{border-color:var(--a);color:var(--a)}.rbtn.primary{background:var(--a);color:#fff;border-color:var(--a)}.rbtn.primary:disabled{opacity:.55}
 .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bd);border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:720px;background:var(--card)}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:middle}
-th{background:var(--hdr);color:var(--mu);font-size:.72rem;font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1}
-th:hover{color:var(--a)}th .arrow{opacity:.45;margin-left:2px;font-size:.65rem}th.on{color:var(--a)}th.on .arrow{opacity:1}
-td{font-size:.82rem}tr:hover td{background:#1a2433}
-.col-brand{white-space:nowrap;color:var(--a);font-weight:600;min-width:4.5rem}
-.col-name{min-width:12rem;line-height:1.35}
-.col-cat{white-space:nowrap;color:var(--mu);font-size:.75rem}
-.col-code{color:var(--mu);font-size:.72rem}
-.col-price{text-align:right;font-weight:800;font-size:1rem;white-space:nowrap}
+table{width:100%;border-collapse:collapse;min-width:780px;background:var(--card)}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:middle}
+th{background:var(--hdr);color:var(--mu);font-size:.7rem;font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1}
+th:hover{color:var(--a)}th .arrow{opacity:.4;margin-left:2px;font-size:.62rem}th.on{color:var(--a)}th.on .arrow{opacity:1}
+td{font-size:.8rem}tr:hover td{background:#1a2433}
+.col-brand{white-space:nowrap;color:var(--a);font-weight:600}
+.col-name{min-width:11rem;line-height:1.3}
+.col-cat{white-space:nowrap;color:var(--mu);font-size:.72rem}
+.col-code{color:var(--mu);font-size:.7rem}
+.col-price{text-align:right;font-weight:800;font-size:.95rem;white-space:nowrap}
+.col-orig{text-align:right;color:var(--mu);font-size:.72rem;text-decoration:line-through;white-space:nowrap}
+.col-pct{text-align:right;white-space:nowrap;font-weight:700;color:#f97316}
 .col-save{text-align:right;white-space:nowrap}
-.save-pill{display:inline-block;background:linear-gradient(90deg,#c2410c,#ea580c);color:#fff;font-weight:800;font-size:.82rem;padding:2px 7px;border-radius:5px}
-.col-stock{text-align:center}.col-end{color:var(--mu);font-size:.72rem;white-space:nowrap}.col-link{text-align:center}
-.badge{display:inline-block;font-size:.68rem;padding:1px 6px;border-radius:999px;font-weight:600}
+.save-pill{display:inline-block;background:linear-gradient(90deg,#c2410c,#ea580c);color:#fff;font-weight:800;font-size:.78rem;padding:2px 6px;border-radius:5px}
+.col-stock{text-align:center}.col-end{color:var(--mu);font-size:.7rem;white-space:nowrap}.col-link{text-align:center}
+.badge{display:inline-block;font-size:.66rem;padding:1px 6px;border-radius:999px;font-weight:600}
 .in{background:rgba(34,197,94,.22);color:var(--g)}.out{background:rgba(239,68,68,.18);color:var(--r)}.low{background:rgba(245,158,11,.22);color:var(--o)}
-.buy{display:inline-block;padding:3px 8px;background:var(--a);color:#fff;border-radius:6px;text-decoration:none;font-size:.72rem;font-weight:600}
-.ph{font-size:.65rem;margin-top:2px;font-weight:600}.ph.down{color:#22c55e}.ph.up{color:#ef4444}
-footer{text-align:center;padding:14px;color:var(--mu);font-size:.7rem;line-height:1.45}
+.buy{display:inline-block;padding:3px 8px;background:var(--a);color:#fff;border-radius:6px;text-decoration:none;font-size:.7rem;font-weight:600}
+.ph{font-size:.62rem;margin-top:1px;font-weight:600}.ph.down{color:#22c55e}.ph.up{color:#ef4444}
+footer{text-align:center;padding:14px;color:var(--mu);font-size:.68rem;line-height:1.45}
 .empty{text-align:center;padding:28px;color:var(--mu)}
+.tag-apple{color:#a1a1aa}.tag-metal{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -47,7 +56,6 @@ footer{text-align:center;padding:14px;color:var(--mu);font-size:.7rem;line-heigh
   <h1>🔥 好市多特價專區</h1>
   <p>限時優惠 · 把握優惠 · 降價商品</p>
   <p><a href="https://www.costco.com.tw/c/hot-buys" target="_blank" rel="noopener">限時優惠</a> <a href="https://www.costco.com.tw/While-Supplies-Last/c/Toogood" target="_blank" rel="noopener">把握優惠</a> <a href="https://www.costco.com.tw/c/new_lower_prices" target="_blank" rel="noopener">降價商品</a></p>
-  <p style="margin-top:4px;font-size:.72rem"><a href="../" style="color:var(--mu)">金脈</a> · <a href="../apple/" style="color:var(--mu)">Apple</a></p>
 </header>
 <div class="toolbar">
   <input id="q" type="search" placeholder="搜尋名稱、品牌或編號…" autocomplete="off"/>
@@ -55,8 +63,10 @@ footer{text-align:center;padding:14px;color:var(--mu);font-size:.7rem;line-heigh
   <button class="rbtn" id="btnSave">只看有折價</button>
   <button class="rbtn primary" id="btnRefresh">🔄 更新</button>
 </div>
-<div class="tabs" id="tabs"></div>
-<div class="tabs" id="brands"></div>
+<div class="label">大分類</div>
+<div class="tabs-main" id="tabs"></div>
+<div class="label">品牌（小分類）</div>
+<div class="tabs-sub" id="brands"></div>
 <p class="meta" id="meta">載入中…</p>
 <div class="wrap"><table>
 <thead><tr>
@@ -64,7 +74,9 @@ footer{text-align:center;padding:14px;color:var(--mu);font-size:.7rem;line-heigh
   <th data-s="name">商品名稱 <span class="arrow"></span></th>
   <th data-s="cat">分類 <span class="arrow"></span></th>
   <th data-s="code">編號 <span class="arrow"></span></th>
+  <th data-s="orig" style="text-align:right">原價 <span class="arrow"></span></th>
   <th data-s="price" style="text-align:right">售價 <span class="arrow"></span></th>
+  <th data-s="pct" style="text-align:right">折扣% <span class="arrow"></span></th>
   <th data-s="save" style="text-align:right">現省 <span class="arrow"></span></th>
   <th data-s="stock" style="text-align:center">庫存 <span class="arrow"></span></th>
   <th data-s="end">截止 <span class="arrow"></span></th>
@@ -73,11 +85,16 @@ footer{text-align:center;padding:14px;color:var(--mu);font-size:.7rem;line-heigh
 <tbody id="tbody"></tbody>
 </table></div>
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
-<footer>資料來源：costco.com.tw · 點欄位標題可排序</footer>
+<footer>資料來源：costco.com.tw · 點欄位標題可排序 · 價格歷史存本機</footer>
 <script>
 var DATA=null,CAT='全部',BRAND='全部',SORT='save',SORT_DIR=-1,ONLY_STOCK=false,ONLY_SAVE=false,Q='';
-var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
+var CATS=[{id:'全部',label:'全部'},{id:'Apple',label:' Apple',cls:'cat-apple'},{id:'貴金屬',label:'貴金屬',cls:'cat-metal'},{id:'3C家電',label:'3C家電'},{id:'食品飲料',label:'食品飲料'},{id:'日用清潔',label:'日用清潔'},{id:'服飾',label:'服飾'},{id:'家具家飾',label:'家具家飾'},{id:'美妝保養',label:'美妝保養'},{id:'其他',label:'其他'}];
+function isApple(x){var n=x.n||'';return /Apple|iPhone|iPad|MacBook|AirPods|Apple Watch|iMac|Mac mini|AirTag|Mac\s/i.test(n)}
+function isMetal(x){var n=x.n||'';return /黃金|金條|金塊|純金|白銀|銀條|銀塊|鉑金|鑽石|貴金屬|Gold\s*Bar|銀幣|金幣|999\.9/i.test(n)}
+function catOf(x){if(isApple(x))return 'Apple';if(isMetal(x))return '貴金屬';return x.k||'其他'}
 function brandOf(x){var n=(x.n||'').trim();if(!n)return '其他';var t=n.split(/\s+/)[0];return /^[0-9$￥]/.test(t)?'其他':t}
+function origPrice(x){if(x.p!=null&&x.save>0)return x.p+x.save;return null}
+function pctOff(x){var o=origPrice(x);if(o&&o>0&&x.save>0)return Math.round(x.save/o*1000)/10;return null}
 function money(p,t){if(t&&t!=='—')return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);if(p==null||p==='')return '登入顯示';return 'NT$'+Number(p).toLocaleString('zh-TW',{maximumFractionDigits:0})}
 function loadHist(){try{return JSON.parse(localStorage.getItem('costco_ph')||'{}')}catch(e){return{}}}
 function saveHist(h){try{localStorage.setItem('costco_ph',JSON.stringify(h))}catch(e){}}
@@ -86,12 +103,12 @@ function priceChange(x){var h=loadHist()[String(x.c)];if(!h||h.length<2)return''
 function fullUrl(u){if(!u)return'https://www.costco.com.tw/c/hot-buys';return u.startsWith('http')?u:('https://www.costco.com.tw'+u)}
 function stockBadge(s){return s===1?'<span class="badge in">有貨</span>':s===2?'<span class="badge low">庫存少</span>':'<span class="badge out">缺貨</span>'}
 function stockRank(s){return s===1?0:s===2?1:2}
-function filtered(){if(!DATA)return[];var list=(DATA.items||[]).slice();list=list.filter(function(x){if(ONLY_STOCK&&x.s!==1)return false;if(ONLY_SAVE&&!(x.save>0))return false;if(CAT!=='全部'&&x.k!==CAT)return false;if(BRAND!=='全部'&&brandOf(x)!==BRAND)return false;if(Q){var s=(x.n+' '+(x.c||'')+' '+brandOf(x)).toLowerCase();if(s.indexOf(Q)<0)return false}return true});var dir=SORT_DIR;list.sort(function(a,b){var cmp=0;if(SORT==='brand')cmp=brandOf(a).localeCompare(brandOf(b),'zh-TW');else if(SORT==='name')cmp=(a.n||'').localeCompare(b.n||'','zh-TW');else if(SORT==='cat')cmp=(a.k||'').localeCompare(b.k||'','zh-TW');else if(SORT==='code')cmp=String(a.c||'').localeCompare(String(b.c||''));else if(SORT==='price')cmp=(a.p!=null?a.p:1e12)-(b.p!=null?b.p:1e12);else if(SORT==='save')cmp=(a.save||0)-(b.save||0);else if(SORT==='stock')cmp=stockRank(a.s)-stockRank(b.s);else if(SORT==='end')cmp=String(a.end||'￿').localeCompare(String(b.end||'￿'));if(cmp===0)cmp=(b.save||0)-(a.save||0);return cmp*dir});return list}
+function filtered(){if(!DATA)return[];var list=(DATA.items||[]).slice();list=list.filter(function(x){if(ONLY_STOCK&&x.s!==1)return false;if(ONLY_SAVE&&!(x.save>0))return false;if(CAT!=='全部'&&catOf(x)!==CAT)return false;if(BRAND!=='全部'&&brandOf(x)!==BRAND)return false;if(Q){var s=(x.n+' '+(x.c||'')+' '+brandOf(x)+' '+catOf(x)).toLowerCase();if(s.indexOf(Q)<0)return false}return true});var dir=SORT_DIR;list.sort(function(a,b){var cmp=0;if(SORT==='brand')cmp=brandOf(a).localeCompare(brandOf(b),'zh-TW');else if(SORT==='name')cmp=(a.n||'').localeCompare(b.n||'','zh-TW');else if(SORT==='cat')cmp=catOf(a).localeCompare(catOf(b),'zh-TW');else if(SORT==='code')cmp=String(a.c||'').localeCompare(String(b.c||''));else if(SORT==='price')cmp=(a.p!=null?a.p:1e12)-(b.p!=null?b.p:1e12);else if(SORT==='orig')cmp=(origPrice(a)||1e12)-(origPrice(b)||1e12);else if(SORT==='pct')cmp=(pctOff(a)||0)-(pctOff(b)||0);else if(SORT==='save')cmp=(a.save||0)-(b.save||0);else if(SORT==='stock')cmp=stockRank(a.s)-stockRank(b.s);else if(SORT==='end')cmp=String(a.end||'￿').localeCompare(String(b.end||'￿'));if(cmp===0)cmp=(b.save||0)-(a.save||0);return cmp*dir});return list}
 function renderHead(){[].forEach.call(document.querySelectorAll('th[data-s]'),function(th){var s=th.getAttribute('data-s'),on=s===SORT;th.classList.toggle('on',on);var ar=th.querySelector('.arrow');if(ar)ar.textContent=on?(SORT_DIR>0?'▲':'▼'):''})}
-function render(){renderHead();var list=filtered(),tb=document.getElementById('tbody'),empty=document.getElementById('empty'),meta=document.getElementById('meta');var total=(DATA&&DATA.items)?DATA.items.length:0,inStock=0,outStock=0,withSave=0;if(DATA&&DATA.items)DATA.items.forEach(function(x){if(x.s===1)inStock++;else outStock++;if(x.save>0)withSave++});meta.textContent='顯示 '+list.length+' 件 · 共 '+total+' 件（有貨 '+inStock+' / 缺貨 '+outStock+' · 有折價 '+withSave+'） · 更新 '+(DATA&&DATA.updated?DATA.updated:'—');if(!list.length){tb.innerHTML='';empty.style.display='block';return}empty.style.display='none';tb.innerHTML=list.map(function(x){var saveCell='—';if(x.save>0){var amt=x.saveT||('NT$'+Number(x.save).toLocaleString('zh-TW'));saveCell='<span class="save-pill">'+amt+'</span>'}return '<tr><td class="col-brand">'+brandOf(x)+'</td><td class="col-name">'+x.n+'</td><td class="col-cat">'+(x.k||'')+'</td><td class="col-code">'+x.c+'</td><td class="col-price">'+money(x.p,x.t)+priceChange(x)+'</td><td class="col-save">'+saveCell+'</td><td class="col-stock">'+stockBadge(x.s)+'</td><td class="col-end">'+(x.end||'—')+'</td><td class="col-link"><a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">查看</a></td></tr>'}).join('')}
-function buildBrands(){var counts={};(DATA.items||[]).forEach(function(x){var b=brandOf(x);counts[b]=(counts[b]||0)+1});var list=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]||a.localeCompare(b,'zh-TW')});var el=document.getElementById('brands');el.innerHTML='<button data-b="全部" class="'+(BRAND==='全部'?'on':'')+'">全部品牌</button>'+list.slice(0,50).map(function(b){return '<button data-b="'+b+'" class="'+(b===BRAND?'on':'')+'">'+b+' ('+counts[b]+')</button>'}).join('');el.onclick=function(e){var btn=e.target.closest('button[data-b]');if(!btn)return;BRAND=btn.getAttribute('data-b');[].forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x===btn)});render()}}
-function buildTabs(){var el=document.getElementById('tabs');el.innerHTML=CATS.map(function(c){return '<button data-c="'+c+'" class="'+(c===CAT?'on':'')+'">'+c+'</button>'}).join('');el.onclick=function(e){var b=e.target.closest('button[data-c]');if(!b)return;CAT=b.getAttribute('data-c');[].forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});render()}}
-function loadData(){document.getElementById('meta').textContent='載入中…';return Promise.all(Array.from({length:20},function(_,i){return fetch('./e'+i+'.txt?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('e'+i+' HTTP '+r.status);return r.text()})})).then(function(arr){var a=arr.map(function(t){return t.trim()});if(a[0]&&a[0].length>1301&&a[0][1301]==='g')a[0]=a[0].slice(0,1301)+'m'+a[0].slice(1302);if(a[7]&&a[7].length>1020&&a[7][1020]==='t')a[7]=a[7].slice(0,1020)+'d'+a[7].slice(1021);if(a[16]&&a[16].length>1023&&a[16][1022]==='z'&&a[16][1023]==='q')a[16]=a[16].slice(0,1022)+'qd'+a[16].slice(1024);var b64=a.join('');var bin=atob(b64),u8=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer()}).then(function(ab){DATA=JSON.parse(new TextDecoder().decode(ab));recordPrices(DATA.items||[],DATA.updated||'2026-11-16');buildTabs();buildBrands();render();return DATA})}
+function render(){renderHead();var list=filtered(),tb=document.getElementById('tbody'),empty=document.getElementById('empty'),meta=document.getElementById('meta');var total=(DATA&&DATA.items)?DATA.items.length:0,inStock=0,outStock=0,withSave=0;if(DATA&&DATA.items)DATA.items.forEach(function(x){if(x.s===1)inStock++;else outStock++;if(x.save>0)withSave++});meta.textContent='顯示 '+list.length+' 件 · 共 '+total+' 件（有貨 '+inStock+' / 缺貨 '+outStock+' · 有折價 '+withSave+'） · 更新 '+(DATA&&DATA.updated?DATA.updated:'—');if(!list.length){tb.innerHTML='';empty.style.display='block';return}empty.style.display='none';tb.innerHTML=list.map(function(x){var saveCell='—';if(x.save>0){var amt=x.saveT||('NT$'+Number(x.save).toLocaleString('zh-TW'));saveCell='<span class="save-pill">'+amt+'</span>'}var o=origPrice(x),pct=pctOff(x),cat=catOf(x);var catCls=cat==='Apple'?'tag-apple':cat==='貴金屬'?'tag-metal':'';return '<tr><td class="col-brand">'+brandOf(x)+'</td><td class="col-name">'+x.n+'</td><td class="col-cat '+catCls+'">'+cat+'</td><td class="col-code">'+x.c+'</td><td class="col-orig">'+(o!=null?money(o):'—')+'</td><td class="col-price">'+money(x.p,x.t)+priceChange(x)+'</td><td class="col-pct">'+(pct!=null?(pct+'%'):'—')+'</td><td class="col-save">'+saveCell+'</td><td class="col-stock">'+stockBadge(x.s)+'</td><td class="col-end">'+(x.end||'—')+'</td><td class="col-link"><a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">查看</a></td></tr>'}).join('')}
+function buildBrands(){var counts={},src=(DATA.items||[]).filter(function(x){return CAT==='全部'||catOf(x)===CAT});src.forEach(function(x){var b=brandOf(x);counts[b]=(counts[b]||0)+1});var list=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]||a.localeCompare(b,'zh-TW')});var el=document.getElementById('brands');el.innerHTML='<button data-b="全部" class="'+(BRAND==='全部'?'on':'')+'">全部品牌</button>'+list.slice(0,60).map(function(b){return '<button data-b="'+b+'" class="'+(b===BRAND?'on':'')+'">'+b+' ('+counts[b]+')</button>'}).join('');el.onclick=function(e){var btn=e.target.closest('button[data-b]');if(!btn)return;BRAND=btn.getAttribute('data-b');[].forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x===btn)});render()}}
+function buildTabs(){var counts={};(DATA.items||[]).forEach(function(x){var c=catOf(x);counts[c]=(counts[c]||0)+1});var el=document.getElementById('tabs');el.innerHTML=CATS.map(function(c){var n=c.id==='全部'?(DATA.items||[]).length:(counts[c.id]||0);var cls=(c.cls||'')+(c.id===CAT?' on':'');return '<button data-c="'+c.id+'" class="'+cls+'">'+c.label+(n?' · '+n:'')+'</button>'}).join('');el.onclick=function(e){var b=e.target.closest('button[data-c]');if(!b)return;CAT=b.getAttribute('data-c');BRAND='全部';[].forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});buildBrands();render()}}
+function loadData(){document.getElementById('meta').textContent='載入中…';return Promise.all(Array.from({length:20},function(_,i){return fetch('./e'+i+'.txt?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('e'+i+' HTTP '+r.status);return r.text()})})).then(function(arr){var a=arr.map(function(t){return t.trim()});if(a[0]&&a[0].length>1301&&a[0][1301]==='g')a[0]=a[0].slice(0,1301)+'m'+a[0].slice(1302);if(a[7]&&a[7].length>1020&&a[7][1020]==='t')a[7]=a[7].slice(0,1020)+'d'+a[7].slice(1021);if(a[16]&&a[16].length>1023&&a[16][1022]==='z'&&a[16][1023]==='q')a[16]=a[16].slice(0,1022)+'qd'+a[16].slice(1024);var b64=a.join(''),bin=atob(b64),u8=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer()}).then(function(ab){DATA=JSON.parse(new TextDecoder().decode(ab));recordPrices(DATA.items||[],DATA.updated||'2026-11-16');buildTabs();buildBrands();render();return DATA})}
 document.querySelectorAll('th[data-s]').forEach(function(th){th.onclick=function(){var s=th.getAttribute('data-s');if(SORT===s)SORT_DIR=-SORT_DIR;else{SORT=s;SORT_DIR=(s==='name'||s==='brand'||s==='cat'||s==='code'||s==='end')?1:-1}render()}});
 document.getElementById('q').addEventListener('input',function(e){Q=(e.target.value||'').trim().toLowerCase();render()});
 document.getElementById('btnStock').onclick=function(){ONLY_STOCK=!ONLY_STOCK;this.textContent=ONLY_STOCK?'顯示全部':'只看有貨';this.classList.toggle('on',ONLY_STOCK);render()};
