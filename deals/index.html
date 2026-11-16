@@ -32,9 +32,9 @@ header a{color:var(--a);text-decoration:none;font-size:.85rem;margin:0 6px}
 .in{background:rgba(34,197,94,.2);color:var(--g)}
 .out{background:rgba(239,68,68,.15);color:var(--r)}
 .cat{font-size:.72rem;color:var(--mu)}
-.buy{display:inline-block;margin-top:6px;padding:8px 12px;background:var(--a);color:#fff;border-radius:8px;text-decoration:none;font-size:.85rem;text-align:center}
+.buy{display:inline-block;margin-top:6px;padding:8px 12px;background:var(--a);color:#fff;border-radius:8px;text-decoration:none;font-size:.85rem;text-align:center;font-weight:600}
 .buy:hover{opacity:.9}
-.rbtn{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.82rem}
+.rbtn{background:var(--card);border:1px solid var(--bd);color:var(--mu);padding:9px 12px;border-radius:10px;cursor:pointer;font-size:.82rem}
 .rbtn.on{border-color:var(--a);color:var(--a)}
 .rbtn.primary{background:var(--a);color:#fff;border-color:var(--a)}
 .rbtn.primary:disabled{opacity:.6;cursor:wait}
@@ -49,7 +49,7 @@ footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem;line-heig
 <body>
 <header>
   <h1>🔥 好市多特價專區</h1>
-  <p>彙整限時優惠、把握優惠、降價商品（完整 356 件）</p>
+  <p>彙整限時優惠、把握優惠、降價商品（完整約 350+ 件）</p>
   <p class="links">
     <a href="https://www.costco.com.tw/c/hot-buys" target="_blank" rel="noopener">限時優惠</a>
     <a href="https://www.costco.com.tw/While-Supplies-Last/c/Toogood" target="_blank" rel="noopener">把握優惠</a>
@@ -75,13 +75,13 @@ footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem;line-heig
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
 <footer>
   資料來源：costco.com.tw（hot-buys + Toogood + new_lower_prices）· 價格與庫存以官網為準 · 非官方工具<br>
-  「更新資料」會重新載入最新快照（清除快取）。
+  「更新資料」會重新載入最新快照（清除快取）。完整即時抓取需 CORS Proxy。
 </footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
-var PARTS=20;
+var CHUNKS=5;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
@@ -98,7 +98,10 @@ function filtered(){
     if(ONLY_STOCK && x.s!==1) return false;
     if(ONLY_SAVE && !(x.save>0)) return false;
     if(CAT!=='全部' && x.k!==CAT) return false;
-    if(Q){ var s=(x.n+' '+x.c).toLowerCase(); if(s.indexOf(Q)<0) return false; }
+    if(Q){
+      var s=(x.n+' '+x.c).toLowerCase();
+      if(s.indexOf(Q)<0) return false;
+    }
     return true;
   });
   list.sort(function(a,b){
@@ -147,19 +150,18 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return Promise.all([
-    fetch('./meta.json?v='+v,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('meta HTTP '+r.status); return r.json(); }),
-    Promise.all(Array.from({length:PARTS},function(_,i){
-      return fetch('./p'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
-        if(!r.ok) throw new Error('part '+i+' HTTP '+r.status);
-        return r.json();
-      });
-    }))
-  ]).then(function(res){
-    var meta=res[0], parts=res[1];
-    var items=[];
-    for(var i=0;i<parts.length;i++) items=items.concat(parts[i]);
-    DATA={updated:meta.updated,source:meta.source,items:items};
+  return Promise.all(Array.from({length:CHUNKS},function(_,i){
+    return fetch('./d'+i+'.b64?v='+v,{cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('chunk '+i+' HTTP '+r.status);
+      return r.text();
+    });
+  })).then(function(arr){
+    var b64=arr.map(function(t){return t.trim();}).join('');
+    var bin=atob(b64), len=bin.length, u8=new Uint8Array(len);
+    for(var i=0;i<len;i++) u8[i]=bin.charCodeAt(i);
+    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  }).then(function(ab){
+    DATA=JSON.parse(new TextDecoder().decode(ab));
     buildTabs();
     render();
     return DATA;
