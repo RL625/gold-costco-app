@@ -2,97 +2,152 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>好市多特價專區</title>
 <style>
-:root{--bg:#0f1419;--card:#1a2332;--bd:#2d3a4f;--a:#0a84ff;--mu:#8b9bb4;--g:#22c55e;--r:#ef4444;--o:#f59e0b;--w:#e8eef7}
+:root{
+  --bg:#0b0f14;--card:#141c27;--bd:#243044;--a:#0a84ff;--mu:#8b9bb4;
+  --g:#22c55e;--r:#ef4444;--o:#f59e0b;--w:#e8eef7;--save:#ffb020;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--w);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:900px;margin:0 auto;padding:0 12px 48px}
-header{text-align:center;padding:18px 0 12px;border-bottom:1px solid var(--bd);margin-bottom:10px}
-header h1{font-size:clamp(1.25rem,4vw,1.6rem);letter-spacing:-.02em}
-header p{color:var(--mu);font-size:.85rem;margin-top:5px}
-header a{color:var(--a);text-decoration:none;font-size:.82rem;margin:0 5px}
-.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
-.toolbar input{flex:1;min-width:120px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;color:var(--w);font-size:.92rem}
+html{font-size:16px}
+body{
+  background:var(--bg);color:var(--w);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  max-width:960px;margin:0 auto;padding:0 10px 40px;
+  -webkit-text-size-adjust:100%;
+}
+header{text-align:center;padding:14px 0 10px;border-bottom:1px solid var(--bd);margin-bottom:8px}
+header h1{font-size:clamp(1.15rem,3.8vw,1.55rem);letter-spacing:-.02em}
+header p{color:var(--mu);font-size:.8rem;margin-top:4px}
+header a{color:var(--a);text-decoration:none;margin:0 4px}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.toolbar input{
+  flex:1;min-width:110px;background:var(--card);border:1px solid var(--bd);
+  border-radius:8px;padding:8px 10px;color:var(--w);font-size:.9rem
+}
 .toolbar input:focus{outline:none;border-color:var(--a)}
-.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
-.tabs button{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:6px 11px;border-radius:999px;cursor:pointer;font-size:.8rem}
-.tabs button:hover{border-color:var(--a);color:var(--w)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.tabs button{
+  background:transparent;border:1px solid var(--bd);color:var(--mu);
+  padding:5px 10px;border-radius:999px;cursor:pointer;font-size:.78rem
+}
 .tabs button.on{background:var(--a);color:#fff;border-color:var(--a);font-weight:600}
-.meta{font-size:.78rem;color:var(--mu);margin:6px 0 10px}
-.list{display:flex;flex-direction:column;gap:1px;background:var(--bd);border-radius:10px;overflow:hidden;border:1px solid var(--bd)}
-.row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:11px 12px;background:var(--card);align-items:center}
-.row:hover{background:#1e2a3d}
-.row .left{min-width:0}
-.row .name{font-size:.9rem;line-height:1.35;margin-bottom:3px;word-break:break-word}
-.row .sub{font-size:.75rem;color:var(--mu);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
-.row .right{text-align:right;white-space:nowrap}
-.row .price{font-size:1.05rem;font-weight:700}
-.row .save{font-size:.8rem;color:var(--o);font-weight:600;margin-top:2px}
-.badge{display:inline-block;font-size:.7rem;padding:1px 7px;border-radius:999px;font-weight:600}
-.in{background:rgba(34,197,94,.2);color:var(--g)}
-.out{background:rgba(239,68,68,.15);color:var(--r)}
-.low{background:rgba(245,158,11,.2);color:var(--o)}
-.buy{display:inline-block;margin-top:5px;padding:5px 10px;background:var(--a);color:#fff;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:600}
-.buy:hover{opacity:.9}
-.rbtn{background:var(--card);border:1px solid var(--bd);color:var(--mu);padding:8px 11px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.meta{font-size:.75rem;color:var(--mu);margin:4px 0 8px}
+.list{display:flex;flex-direction:column;gap:0;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:6px 12px;
+  padding:10px 12px;
+  background:var(--card);
+  border-bottom:1px solid var(--bd);
+  align-items:start;
+}
+.row:last-child{border-bottom:none}
+.row:hover{background:#1a2433}
+.row .name{font-size:.88rem;line-height:1.35;word-break:break-word}
+.row .sub{
+  font-size:.72rem;color:var(--mu);margin-top:3px;
+  display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center
+}
+.row .right{text-align:right;min-width:7.5rem}
+.price{
+  font-size:1.12rem;font-weight:700;letter-spacing:-.01em;
+  color:#fff;
+}
+.save{
+  font-size:.82rem;font-weight:700;color:var(--save);
+  margin-top:2px;line-height:1.3
+}
+.save .amt{font-size:.95rem}
+.end{font-size:.7rem;color:var(--mu);font-weight:400}
+.badge{
+  display:inline-block;font-size:.68rem;padding:1px 6px;
+  border-radius:999px;font-weight:600;line-height:1.4
+}
+.in{background:rgba(34,197,94,.22);color:var(--g)}
+.out{background:rgba(239,68,68,.18);color:var(--r)}
+.low{background:rgba(245,158,11,.22);color:var(--o)}
+.buy{
+  display:inline-block;margin-top:5px;padding:4px 9px;
+  background:var(--a);color:#fff;border-radius:6px;
+  text-decoration:none;font-size:.75rem;font-weight:600
+}
+.rbtn{
+  background:var(--card);border:1px solid var(--bd);color:var(--mu);
+  padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.78rem
+}
 .rbtn.on{border-color:var(--a);color:var(--a)}
 .rbtn.primary{background:var(--a);color:#fff;border-color:var(--a)}
-.rbtn.primary:disabled{opacity:.6;cursor:wait}
-footer{text-align:center;padding:20px;color:var(--mu);font-size:.75rem;line-height:1.5}
-.empty{text-align:center;padding:36px;color:var(--mu)}
-.nav{margin-top:8px;font-size:.78rem}
-.nav a{color:var(--mu);margin:0 3px}
-.links{margin-top:6px;font-size:.78rem}
-.links a{color:var(--a);margin:0 5px}
-@media(max-width:520px){
-  .row{grid-template-columns:1fr;gap:6px}
-  .row .right{text-align:left}
+.rbtn.primary:disabled{opacity:.55;cursor:wait}
+footer{text-align:center;padding:16px;color:var(--mu);font-size:.72rem;line-height:1.45}
+.empty{text-align:center;padding:32px;color:var(--mu)}
+.nav{margin-top:6px;font-size:.75rem}
+.nav a{color:var(--mu)}
+.links a{color:var(--a)}
+
+@media(min-width:640px){
+  .row{padding:11px 14px;gap:8px 16px}
+  .price{font-size:1.2rem}
+  .save{font-size:.88rem}
+  .row .name{font-size:.92rem}
+  .row .right{min-width:8.5rem}
+}
+@media(min-width:900px){
+  body{padding:0 16px 48px}
+  .price{font-size:1.25rem}
 }
 </style>
 </head>
 <body>
 <header>
   <h1>🔥 好市多特價專區</h1>
-  <p>彙整限時優惠、把握優惠、降價商品（完整 350+ 件）</p>
+  <p>限時優惠 · 把握優惠 · 降價商品（完整 350+ 件）</p>
   <p class="links">
     <a href="https://www.costco.com.tw/c/hot-buys" target="_blank" rel="noopener">限時優惠</a>
     <a href="https://www.costco.com.tw/While-Supplies-Last/c/Toogood" target="_blank" rel="noopener">把握優惠</a>
     <a href="https://www.costco.com.tw/c/new_lower_prices" target="_blank" rel="noopener">降價商品</a>
   </p>
   <p class="nav">
-    <a href="../">金脈</a> ·
-    <a href="../apple/">Apple</a> ·
-    <a href="../btc/">比特幣</a> ·
-    <a href="../silver/">白銀</a>
+    <a href="../">金脈</a> · <a href="../apple/">Apple</a> · <a href="../btc/">比特幣</a> · <a href="../silver/">白銀</a>
   </p>
 </header>
 
 <div class="toolbar">
-  <input id="q" type="search" placeholder="搜尋商品名稱或編號…" autocomplete="off"/>
+  <input id="q" type="search" placeholder="搜尋名稱或編號…" autocomplete="off"/>
   <button class="rbtn" id="btnStock">只看有貨</button>
   <button class="rbtn" id="btnSave">只看有折價</button>
-  <button class="rbtn primary" id="btnRefresh">🔄 更新資料</button>
+  <button class="rbtn primary" id="btnRefresh">🔄 更新</button>
 </div>
 <div class="tabs" id="tabs"></div>
 <p class="meta" id="meta">載入中…</p>
 <div class="list" id="list"></div>
 <div class="empty" id="empty" style="display:none">沒有符合的商品</div>
 <footer>
-  資料來源：costco.com.tw（hot-buys + Toogood + new_lower_prices）· 價格與庫存以官網為準 · 非官方工具<br>
-  「更新資料」會重新載入最新快照（清除快取）。
+  資料來源：costco.com.tw · 價格與庫存以官網為準 · 非官方工具<br>
+  「更新」會清除快取重新載入。
 </footer>
 
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
+var PARTS=20;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
-  if(p==null) return '登入顯示 / 未標價';
+  if(p==null||p==='') return '登入顯示';
   return 'NT$'+Number(p).toLocaleString('zh-TW',{maximumFractionDigits:0});
 }
-function fullUrl(u){ if(!u) return 'https://www.costco.com.tw/c/hot-buys'; return u.startsWith('http')?u:('https://www.costco.com.tw'+u); }
+function fullUrl(u){
+  if(!u) return 'https://www.costco.com.tw/c/hot-buys';
+  return u.startsWith('http')?u:('https://www.costco.com.tw'+u);
+}
+function stockBadge(s){
+  if(s===1) return '<span class="badge in">有貨</span>';
+  if(s===2) return '<span class="badge low">庫存少</span>';
+  return '<span class="badge out">缺貨</span>';
+}
 
 function filtered(){
   if(!DATA) return [];
@@ -102,13 +157,13 @@ function filtered(){
     if(ONLY_SAVE && !(x.save>0)) return false;
     if(CAT!=='全部' && x.k!==CAT) return false;
     if(Q){
-      var s=(x.n+' '+x.c).toLowerCase();
+      var s=(x.n+' '+(x.c||'')).toLowerCase();
       if(s.indexOf(Q)<0) return false;
     }
     return true;
   });
   list.sort(function(a,b){
-    var sa=a.s===1?0:1, sb=b.s===1?0:1;
+    var sa=a.s===1?0:(a.s===2?1:2), sb=b.s===1?0:(b.s===2?1:2);
     if(sa!==sb) return sa-sb;
     var da=a.save||0, db=b.save||0;
     if(da!==db) return db-da;
@@ -123,15 +178,33 @@ function render(){
   var empty=document.getElementById('empty');
   var meta=document.getElementById('meta');
   var total=(DATA&&DATA.items)?DATA.items.length:0;
-  var inStock=(DATA&&DATA.items)?DATA.items.filter(function(x){return x.s===1}).length:0;
-  var withSave=(DATA&&DATA.items)?DATA.items.filter(function(x){return x.save>0}).length:0;
-  meta.textContent='顯示 '+list.length+' 件 · 共 '+total+' 件（有貨 '+inStock+'、有折價 '+withSave+'） · 更新 '+(DATA&&DATA.updated?DATA.updated:'—');
+  var inStock=0, outStock=0, withSave=0;
+  if(DATA&&DATA.items){
+    DATA.items.forEach(function(x){
+      if(x.s===1) inStock++; else outStock++;
+      if(x.save>0) withSave++;
+    });
+  }
+  meta.textContent='顯示 '+list.length+' 件 · 共 '+total+' 件（有貨 '+inStock+' / 缺貨 '+outStock+' · 有折價 '+withSave+'） · 更新 '+(DATA&&DATA.updated?DATA.updated:'—');
   if(!list.length){ el.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   el.innerHTML=list.map(function(x){
-    var stock=x.s===1?'<span class="badge in">有貨</span>':(x.s===2?'<span class="badge low">庫存少</span>':'<span class="badge out">缺貨</span>');
-    var saveHtml=x.save>0?('<div class="save">現省 '+(x.saveT||('NT$'+Number(x.save).toLocaleString('zh-TW')))+(x.end?' · 至 '+x.end:'')+'</div>'):'';
-    return '<div class="row"><div class="left"><div class="name">'+x.n+'</div><div class="sub"><span>'+x.k+'</span><span>#'+x.c+'</span>'+stock+'</div></div><div class="right"><div class="price">'+money(x.p,x.t)+'</div>'+saveHtml+'<a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">查看</a></div></div>';
+    var saveHtml='';
+    if(x.save>0){
+      var amt=x.saveT||('NT$'+Number(x.save).toLocaleString('zh-TW'));
+      saveHtml='<div class="save">現省 <span class="amt">'+amt+'</span>'+(x.end?' <span class="end">至 '+x.end+'</span>':'')+'</div>';
+    }
+    return '<div class="row">'+
+      '<div class="left">'+
+        '<div class="name">'+x.n+'</div>'+
+        '<div class="sub"><span>'+x.k+'</span><span>#'+x.c+'</span>'+stockBadge(x.s)+'</div>'+
+      '</div>'+
+      '<div class="right">'+
+        '<div class="price">'+money(x.p,x.t)+'</div>'+
+        saveHtml+
+        '<a class="buy" href="'+fullUrl(x.u)+'" target="_blank" rel="noopener">查看</a>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
@@ -151,41 +224,45 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return fetch('./data.json?v='+v,{cache:'no-store'}).then(function(r){
-    if(!r.ok) throw new Error('data.json HTTP '+r.status);
-    return r.json();
-  }).then(function(d){
-    DATA=d;
+  return Promise.all(Array.from({length:PARTS},function(_,i){
+    return fetch('./d'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('d'+i+'.json HTTP '+r.status);
+      return r.json();
+    });
+  })).then(function(arrs){
+    var items=[];
+    arrs.forEach(function(a){ items=items.concat(a); });
+    DATA={updated:'2026-11-16',items:items};
     buildTabs();
     render();
     return DATA;
   });
 }
 
-document.getElementById('q').addEventListener('input',function(e){ Q=(e.target.value||'').trim().toLowerCase(); render(); });
+document.getElementById('q').addEventListener('input',function(e){
+  Q=(e.target.value||'').trim().toLowerCase(); render();
+});
 document.getElementById('btnStock').onclick=function(){
   ONLY_STOCK=!ONLY_STOCK;
-  this.textContent=ONLY_STOCK?'顯示全部庫存':'只看有貨';
+  this.textContent=ONLY_STOCK?'顯示全部':'只看有貨';
   this.classList.toggle('on',ONLY_STOCK);
   render();
 };
 document.getElementById('btnSave').onclick=function(){
   ONLY_SAVE=!ONLY_SAVE;
-  this.textContent=ONLY_SAVE?'顯示全部價格':'只看有折價';
+  this.textContent=ONLY_SAVE?'顯示全部':'只看有折價';
   this.classList.toggle('on',ONLY_SAVE);
   render();
 };
 document.getElementById('btnRefresh').onclick=function(){
   var btn=this;
-  btn.disabled=true;
-  btn.textContent='更新中…';
+  btn.disabled=true; btn.textContent='更新中…';
   loadData(Date.now()).then(function(){
     btn.textContent='✅ 已更新';
-    setTimeout(function(){ btn.textContent='🔄 更新資料'; btn.disabled=false; }, 1500);
+    setTimeout(function(){ btn.textContent='🔄 更新'; btn.disabled=false; },1400);
   }).catch(function(e){
     document.getElementById('meta').textContent='更新失敗：'+(e.message||e);
-    btn.textContent='🔄 更新資料';
-    btn.disabled=false;
+    btn.textContent='🔄 更新'; btn.disabled=false;
   });
 };
 
