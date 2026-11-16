@@ -49,7 +49,7 @@ footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem;line-heig
 <body>
 <header>
   <h1>🔥 好市多特價專區</h1>
-  <p>彙整限時優惠、把握優惠、降價商品（完整約 350+ 件）</p>
+  <p>彙整限時優惠、把握優惠、降價商品（完整 356 件）</p>
   <p class="links">
     <a href="https://www.costco.com.tw/c/hot-buys" target="_blank" rel="noopener">限時優惠</a>
     <a href="https://www.costco.com.tw/While-Supplies-Last/c/Toogood" target="_blank" rel="noopener">把握優惠</a>
@@ -81,7 +81,7 @@ footer{text-align:center;padding:24px;color:var(--mu);font-size:.78rem;line-heig
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
-var CHUNKS=5;
+var PARTS=20;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
@@ -98,10 +98,7 @@ function filtered(){
     if(ONLY_STOCK && x.s!==1) return false;
     if(ONLY_SAVE && !(x.save>0)) return false;
     if(CAT!=='全部' && x.k!==CAT) return false;
-    if(Q){
-      var s=(x.n+' '+x.c).toLowerCase();
-      if(s.indexOf(Q)<0) return false;
-    }
+    if(Q){ var s=(x.n+' '+x.c).toLowerCase(); if(s.indexOf(Q)<0) return false; }
     return true;
   });
   list.sort(function(a,b){
@@ -150,18 +147,19 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return Promise.all(Array.from({length:CHUNKS},function(_,i){
-    return fetch('./d'+i+'.b64?v='+v,{cache:'no-store'}).then(function(r){
-      if(!r.ok) throw new Error('chunk '+i+' HTTP '+r.status);
-      return r.text();
-    });
-  })).then(function(arr){
-    var b64=arr.map(function(t){return t.trim();}).join('');
-    var bin=atob(b64), len=bin.length, u8=new Uint8Array(len);
-    for(var i=0;i<len;i++) u8[i]=bin.charCodeAt(i);
-    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
-  }).then(function(ab){
-    DATA=JSON.parse(new TextDecoder().decode(ab));
+  return Promise.all([
+    fetch('./meta.json?v='+v,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('meta HTTP '+r.status); return r.json(); }),
+    Promise.all(Array.from({length:PARTS},function(_,i){
+      return fetch('./p'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
+        if(!r.ok) throw new Error('part '+i+' HTTP '+r.status);
+        return r.json();
+      });
+    }))
+  ]).then(function(res){
+    var meta=res[0], parts=res[1];
+    var items=[];
+    for(var i=0;i<parts.length;i++) items=items.concat(parts[i]);
+    DATA={updated:meta.updated,source:meta.source,items:items};
     buildTabs();
     render();
     return DATA;
