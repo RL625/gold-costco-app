@@ -86,7 +86,7 @@ footer{text-align:center;padding:20px;color:var(--mu);font-size:.75rem;line-heig
 <script>
 var DATA=null, CAT='全部', ONLY_STOCK=false, ONLY_SAVE=false, Q='';
 var CATS=['全部','3C家電','食品飲料','日用清潔','服飾','家具家飾','美妝保養','其他'];
-var CHUNKS=10;
+var PARTS=12;
 
 function money(p,t){
   if(t && t!=='—') return t.startsWith('$')||t.startsWith('NT')?t:('NT$'+t);
@@ -152,18 +152,15 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return Promise.all(Array.from({length:CHUNKS},function(_,i){
-    return fetch('./d'+i+'.b64?v='+v,{cache:'no-store'}).then(function(r){
-      if(!r.ok) throw new Error('chunk '+i+' HTTP '+r.status);
-      return r.text();
+  return Promise.all(Array.from({length:PARTS},function(_,i){
+    return fetch('./data'+i+'.json?v='+v,{cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('data'+i+' HTTP '+r.status);
+      return r.json();
     });
-  })).then(function(arr){
-    var b64=arr.map(function(t){return t.trim();}).join('');
-    var bin=atob(b64), len=bin.length, u8=new Uint8Array(len);
-    for(var i=0;i<len;i++) u8[i]=bin.charCodeAt(i);
-    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
-  }).then(function(ab){
-    DATA=JSON.parse(new TextDecoder().decode(ab));
+  })).then(function(arrs){
+    var items=[];
+    arrs.forEach(function(a){ items=items.concat(a); });
+    DATA={updated:'2026-11-16',items:items};
     buildTabs();
     render();
     return DATA;
