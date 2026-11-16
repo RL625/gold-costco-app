@@ -149,11 +149,11 @@ function buildTabs(){
 function loadData(bust){
   var v=bust||Date.now();
   document.getElementById('meta').textContent='載入中…';
-  return fetch('./data.json?v='+v,{cache:'no-store'}).then(function(r){
-    if(!r.ok) throw new Error('data.json HTTP '+r.status);
-    return r.json();
-  }).then(function(d){
-    DATA=d;
+  return Promise.all([
+    fetch('./p0.json?v='+v,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('p0 HTTP '+r.status); return r.json(); }),
+    fetch('./p1.json?v='+v,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('p1 HTTP '+r.status); return r.json(); })
+  ]).then(function(arr){
+    DATA={updated:arr[0].updated||arr[1].updated,source:arr[0].source||'',items:(arr[0].items||[]).concat(arr[1].items||[])};
     buildTabs();
     render();
     return DATA;
